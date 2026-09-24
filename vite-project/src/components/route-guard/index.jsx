@@ -1,46 +1,39 @@
 import { Fragment } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { canViewAdmin } from "@/utils/rbac";
 
 function RouteGuard({ authenticated, user, element }) {
   const location = useLocation();
+  const path = location.pathname;
 
-  console.log("🛡️ RouteGuard checking route:", location.pathname);
-  console.log("   authenticated:", authenticated);
-  console.log("   user role:", user?.role);
+  // 1. Always allow public routes without authentication
+  const isPublicRoute =
+    path === "/" ||
+    path === "/events" ||
+    path === "/team" ||
+    path === "/projects" ||
+    path.startsWith("/events") ||
+    path.startsWith("/team") ||
+    path.startsWith("/projects") ||
+    path === "/auth";
 
-  // Allow access to /auth page regardless of authentication status
-  if (location.pathname === "/auth" || location.pathname.includes("/auth")) {
-    console.log("   ✓ Allowing /auth access");
+  // 2. Admin routes require authentication and appropriate role/permissions
+  if (path.startsWith("/admin")) {
+    if (!authenticated) {
+      return <Navigate to="/auth" state={{ from: location }} replace />;
+    }
+    if (!canViewAdmin(user)) {
+      return <Navigate to="/" replace />;
+    }
     return <Fragment>{element}</Fragment>;
   }
 
-  // Redirect to /auth if not authenticated and trying to access protected routes
-  if (!authenticated) {
-    console.log("   ⛔ Redirecting to /auth (not authenticated)");
-    return <Navigate to="/auth" />;
+  // 3. For public routes, render directly
+  if (isPublicRoute) {
+    return <Fragment>{element}</Fragment>;
   }
 
-  // If authenticated and not admin, redirect away from admin routes
-  if (
-    authenticated &&
-    user?.role !== "admin" &&
-    location.pathname.includes("/admin")
-  ) {
-    console.log("   ⛔ Redirecting to / (not admin)");
-    return <Navigate to="/" />;
-  }
-
-  // If authenticated admin, redirect to /admin if trying to access student routes
-  if (
-    authenticated &&
-    user?.role === "admin" &&
-    (location.pathname === "/" || location.pathname.includes("/apply"))
-  ) {
-    console.log("   ⛔ Redirecting to /admin (admin accessing student routes)");
-    return <Navigate to="/admin" />;
-  }
-
-  console.log("   ✓ Allowing access to route");
+  // 4. Default fallback: allow element
   return <Fragment>{element}</Fragment>;
 }
 

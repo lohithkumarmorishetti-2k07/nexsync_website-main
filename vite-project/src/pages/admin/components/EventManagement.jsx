@@ -1,41 +1,134 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from '@/api/axiosInstance';
+import VideoPlayer from '@/components/ui/VideoPlayer';
+import { canCreateEvents, canUpdateEvents, canDeleteEvents } from '@/utils/rbac';
 
-const EventManagement = ({ events, onEventsUpdate }) => {
+const EVENT_STATUSES = ['Upcoming', 'Ongoing', 'Completed'];
+const EVENT_TYPES = ['HACKATHON', 'WORKSHOP', 'SYMPOSIUM', 'SPRINT', 'EVENT'];
+
+const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
+  const [viewArchived, setViewArchived] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [newGalleryImage, setNewGalleryImage] = useState('');
+
   const [formData, setFormData] = useState({
     title: '',
-    category: 'EVENT',
     description: '',
+    coverImage: '',
+    image: '',
+    videoUrl: '',
     startDate: '',
     endDate: '',
     timeRange: '',
     duration: '',
     location: '',
-    redirectUrl: '',
+    eventType: 'EVENT',
+    status: 'Upcoming',
+    rsvpLink: '',
+    registrationDeadline: '',
+    organizer: 'NexSync Autonomous Mobility',
+    isFeatured: false,
+    galleryImages: [],
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
 
   const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      };
+      // Keep coverImage and image in sync
+      if (name === 'coverImage') {
+        updated.image = value;
+      } else if (name === 'image') {
+        updated.coverImage = value;
+      }
+      return updated;
+    });
+  };
+
+  const handleAddGalleryImage = () => {
+    if (!newGalleryImage.trim()) return;
+    setFormData((prev) => ({
+      ...prev,
+      galleryImages: [...(prev.galleryImages || []), newGalleryImage.trim()],
+    }));
+    setNewGalleryImage('');
+  };
+
+  const handleRemoveGalleryImage = (indexToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      galleryImages: (prev.galleryImages || []).filter((_, idx) => idx !== indexToRemove),
+    }));
+  };
+
+  const handleImageFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Invalid media file type. Supported formats: JPG, PNG, WebP, SVG.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Media file exceeds 5MB limit. Please upload an optimized image.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const base64 = uploadEvent.target.result;
+      setFormData((prev) => ({
+        ...prev,
+        coverImage: base64,
+        image: base64,
+      }));
+      setSuccess('Event cover image loaded successfully.');
+    };
+    reader.onerror = () => {
+      setError('Failed to read image file.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const isVideoUrlValid = (url) => {
+    if (!url || !url.trim()) return true;
+    const trimmed = url.trim();
+    const isYoutube = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))/i.test(trimmed);
+    const isVimeo = /vimeo\.com\//i.test(trimmed);
+    const isVideoFile = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(trimmed);
+    return isYoutube || isVimeo || isVideoFile;
   };
 
   const resetForm = () => {
     setFormData({
       title: '',
-      category: 'EVENT',
       description: '',
+      coverImage: '',
+      image: '',
+      videoUrl: '',
       startDate: '',
       endDate: '',
       timeRange: '',
       duration: '',
       location: '',
-      redirectUrl: '',
+      eventType: 'EVENT',
+      status: 'Upcoming',
+      rsvpLink: '',
+      registrationDeadline: '',
+      organizer: 'NexSync Autonomous Mobility',
+      isFeatured: false,
+      galleryImages: [],
     });
+    setNewGalleryImage('');
     setEditingEvent(null);
     setShowForm(false);
     setError(null);
@@ -46,28 +139,32 @@ const EventManagement = ({ events, onEventsUpdate }) => {
     setError(null);
     setSuccess(null);
 
-    if (!formData.title || !formData.category || !formData.description || !formData.startDate || !formData.endDate || !formData.timeRange || !formData.duration || !formData.location || !formData.redirectUrl) {
-      setError('All fields are required');
-      return;
-    }
-
-    if (!formData.redirectUrl.startsWith('http://') && !formData.redirectUrl.startsWith('https://')) {
-      setError('Redirect URL must start with http:// or https://');
+    if (!formData.title.trim() || !formData.description.trim() || !formData.startDate || !formData.location.trim()) {
+      setError('Title, Description, Start Date, and Location are required');
       return;
     }
 
     try {
       setLoading(true);
+      const effectiveCover = (formData.coverImage || formData.image || '').trim();
       const payload = {
-        title: formData.title,
-        category: formData.category,
-        description: formData.description,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        coverImage: effectiveCover,
+        image: effectiveCover,
+        videoUrl: (formData.videoUrl || '').trim(),
         startDate: formData.startDate,
-        endDate: formData.endDate,
-        timeRange: formData.timeRange,
-        duration: formData.duration,
-        location: formData.location,
-        redirectUrl: formData.redirectUrl,
+        endDate: formData.endDate || undefined,
+        timeRange: formData.timeRange.trim(),
+        duration: formData.duration.trim(),
+        location: formData.location.trim(),
+        eventType: formData.eventType,
+        status: formData.status,
+        rsvpLink: formData.rsvpLink.trim(),
+        registrationDeadline: formData.registrationDeadline || undefined,
+        organizer: formData.organizer.trim(),
+        isFeatured: Boolean(formData.isFeatured),
+        galleryImages: formData.galleryImages || [],
       };
 
       if (editingEvent) {
@@ -81,7 +178,7 @@ const EventManagement = ({ events, onEventsUpdate }) => {
       setTimeout(() => {
         onEventsUpdate();
         resetForm();
-      }, 1000);
+      }, 700);
     } catch (err) {
       setError(err.response?.data?.message || 'Error saving event');
     } finally {
@@ -91,461 +188,945 @@ const EventManagement = ({ events, onEventsUpdate }) => {
 
   const handleEdit = (event) => {
     setEditingEvent(event);
+    const cover = event.coverImage || event.image || '';
     setFormData({
-      title: event.title,
-      category: event.category,
-      description: event.description,
+      title: event.title || '',
+      description: event.description || '',
+      coverImage: cover,
+      image: cover,
+      videoUrl: event.videoUrl || '',
       startDate: event.startDate ? new Date(event.startDate).toISOString().split('T')[0] : '',
       endDate: event.endDate ? new Date(event.endDate).toISOString().split('T')[0] : '',
-      timeRange: event.timeRange,
-      duration: event.duration,
-      location: event.location,
-      redirectUrl: event.redirectUrl,
+      timeRange: event.timeRange || '',
+      duration: event.duration || '',
+      location: event.location || '',
+      eventType: event.eventType || 'EVENT',
+      status: event.status || 'Upcoming',
+      rsvpLink: event.rsvpLink || event.redirectUrl || '',
+      registrationDeadline: event.registrationDeadline
+        ? new Date(event.registrationDeadline).toISOString().split('T')[0]
+        : '',
+      organizer: event.organizer || 'NexSync Autonomous Mobility',
+      isFeatured: Boolean(event.isFeatured),
+      galleryImages: Array.isArray(event.galleryImages) ? [...event.galleryImages] : [],
     });
+    setNewGalleryImage('');
     setShowForm(true);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
-  const handleDelete = async (eventId) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return;
+  // Move to Archive (Soft Delete)
+  const handleArchive = async (eventId, eventTitle) => {
+    if (!window.confirm(`Archive "${eventTitle}"? This event will be hidden from public view and moved to Archives.`)) {
+      return;
+    }
 
     try {
-      await axios.delete(`/api/events/${eventId}`);
-      setSuccess('Event deleted successfully!');
-      setTimeout(() => {
-        onEventsUpdate();
-      }, 1000);
+      setLoading(true);
+      await axios.put(`/api/events/${eventId}/archive`);
+      setSuccess(`"${eventTitle}" moved to archives.`);
+      onEventsUpdate();
     } catch (err) {
-      setError(err.response?.data?.message || 'Error deleting event');
+      setError(err.response?.data?.message || 'Error archiving event');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Restore from Archive
+  const handleRestore = async (eventId, eventTitle) => {
+    try {
+      setLoading(true);
+      await axios.put(`/api/events/${eventId}/restore`);
+      setSuccess(`"${eventTitle}" restored to active events list.`);
+      onEventsUpdate();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error restoring event');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Permanent Hard Delete (Only for archived items)
+  const handlePermanentDelete = async (eventId, eventTitle) => {
+    const confirmation = window.confirm(
+      `⚠️ PERMANENT DELETE WARNING: Are you completely sure you want to permanently erase "${eventTitle}" from the database? This action CANNOT be undone!`
+    );
+    if (!confirmation) return;
+
+    try {
+      setLoading(true);
+      await axios.delete(`/api/events/${eventId}`);
+      setSuccess(`"${eventTitle}" permanently deleted from database.`);
+      onEventsUpdate();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error deleting event');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const activeEvents = events.filter((e) => !e.isArchived);
+  const archivedEvents = events.filter((e) => e.isArchived);
+  const displayedEvents = viewArchived ? archivedEvents : activeEvents;
+
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="event-mgmt-root">
       <style>{`
-        .event-section {
+        .event-mgmt-root {
           color: #fff;
-          fontFamily: monospace;
+          font-family: var(--font-body);
         }
 
-        .btn-new-event {
-          padding: 10px 20px;
-          background: rgba(100, 255, 100, 0.1);
-          border: 1px solid rgba(100, 255, 100, 0.3);
-          color: #64ff64;
-          borderRadius: 4px;
-          cursor: pointer;
-          fontFamily: monospace;
-          fontWeight: 600;
-          transition: all 0.3s ease;
-          marginBottom: 20px;
-        }
-
-        .btn-new-event:hover {
-          background: rgba(100, 255, 100, 0.2);
-          boxShadow: 0 0 15px rgba(100, 255, 100, 0.3);
-        }
-
-        .form-container {
-          background: rgba(5, 5, 5, 0.9);
-          border: 1px solid rgba(209, 255, 0, 0.2);
-          padding: 30px;
-          borderRadius: 4px;
-          marginBottom: 30px;
-        }
-
-        .form-grid {
-          display: grid;
-          gridTemplateColumns: 1fr 1fr;
-          gap: 20px;
-          marginBottom: 20px;
-        }
-
-        .form-group {
+        .action-bar {
           display: flex;
-          flexDirection: column;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+          flex-wrap: wrap;
+          gap: 16px;
         }
 
-        .form-group.full {
-          gridColumn: 1 / -1;
-        }
-
-        .form-label {
-          color: #888;
-          fontSize: 0.75rem;
-          textTransform: uppercase;
-          marginBottom: 8px;
-          fontWeight: 600;
-        }
-
-        .form-input, .form-textarea, .form-select {
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(209, 255, 0, 0.2);
-          color: #fff;
-          padding: 10px;
-          borderRadius: 4px;
-          fontFamily: monospace;
-          fontSize: 0.95rem;
-          transition: all 0.3s ease;
-        }
-
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-          outline: none;
-          border-color: rgba(209, 255, 0, 0.5);
-          background: rgba(209, 255, 0, 0.05);
-        }
-
-        .form-textarea {
-          resize: vertical;
-          minHeight: 100px;
-          fontFamily: monospace;
-        }
-
-        .form-actions {
+        .view-toggle {
           display: flex;
-          gap: 10px;
-          justified-content: flex-end;
+          gap: 8px;
+          background: rgba(255, 255, 255, 0.03);
+          padding: 4px;
+          border-radius: 4px;
+          border: 1px solid var(--border);
         }
 
-        .btn-submit {
-          flex: 1;
-          padding: 12px 24px;
-          background: rgba(100, 255, 100, 0.1);
-          border: 1px solid rgba(100, 255, 100, 0.3);
-          color: #64ff64;
-          borderRadius: 4px;
-          cursor: pointer;
-          fontWeight: 600;
-          transition: all 0.3s ease;
-        }
-
-        .btn-submit:hover:not(:disabled) {
-          background: rgba(100, 255, 100, 0.2);
-        }
-
-        .btn-submit:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .btn-cancel {
-          flex: 1;
-          padding: 12px 24px;
+        .view-btn {
+          padding: 8px 16px;
           background: transparent;
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff6464;
-          borderRadius: 4px;
+          border: none;
+          color: var(--text-secondary);
           cursor: pointer;
-          fontWeight: 600;
+          font-family: var(--font-mono);
+          font-size: 0.8rem;
+          text-transform: uppercase;
+          transition: all 0.2s ease;
         }
 
-        .events-table {
-          width: 100%;
-          borderCollapse: collapse;
-          marginTop: 20px;
+        .view-btn.active {
+          background: var(--neon);
+          color: #000;
+          font-weight: 700;
         }
 
-        .events-table thead {
-          background: rgba(255, 255, 255, 0.02);
-          borderBottom: 1px solid rgba(209, 255, 0, 0.2);
+        .btn-create {
+          padding: 10px 22px;
+          background: var(--neon);
+          color: #000;
+          border: none;
+          font-family: var(--font-mono);
+          font-weight: 700;
+          font-size: 0.85rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
         }
 
-        .events-table th {
-          padding: 15px;
-          textAlign: left;
-          color: #888;
-          fontSize: 0.75rem;
-          textTransform: uppercase;
-          fontWeight: 600;
-          borderRight: 1px solid rgba(209, 255, 0, 0.1);
+        .btn-create:hover {
+          box-shadow: 0 0 20px var(--neon-glow);
+          transform: translateY(-2px);
         }
 
-        .events-table td {
-          padding: 15px;
-          borderBottom: 1px solid rgba(209, 255, 0, 0.1);
-          borderRight: 1px solid rgba(209, 255, 0, 0.1);
+        .form-card {
+          background: var(--surface);
+          border: 1px solid var(--border-bright);
+          padding: 30px;
+          margin-bottom: 35px;
+          animation: fadeIn 0.4s var(--ease);
         }
 
-        .events-table tr:hover {
+        .form-title {
+          font-family: var(--font-display);
+          font-size: 2rem;
+          color: var(--neon);
+          margin-bottom: 20px;
+          text-transform: uppercase;
+        }
+
+        .form-grid-3 {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 18px;
+          margin-bottom: 18px;
+        }
+
+        .field-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .field-label {
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        .field-input, .field-select, .field-textarea {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid var(--border);
+          color: #fff;
+          padding: 10px 12px;
+          font-family: var(--font-mono);
+          font-size: 0.9rem;
+          transition: border-color 0.2s;
+        }
+
+        .field-input:focus, .field-select:focus, .field-textarea:focus {
+          outline: none;
+          border-color: var(--neon);
           background: rgba(209, 255, 0, 0.03);
         }
 
-        .category-badge {
-          display: inline-block;
-          padding: 6px 12px;
-          borderRadius: 4px;
-          fontSize: 0.7rem;
-          fontWeight: 600;
-          textTransform: uppercase;
-        }
-
-        .category-hackathon {
-          background: rgba(100, 150, 255, 0.1);
-          color: #6496ff;
-          border: 1px solid rgba(100, 150, 255, 0.3);
-        }
-
-        .category-event {
-          background: rgba(209, 255, 0, 0.1);
-          color: #d1ff00;
-          border: 1px solid rgba(209, 255, 0, 0.3);
-        }
-
-        .action-buttons {
+        .form-actions-row {
           display: flex;
-          gap: 8px;
+          justify-content: flex-end;
+          gap: 12px;
+          margin-top: 24px;
         }
 
-        .btn-edit, .btn-delete {
+        .table-responsive {
+          overflow-x: auto;
+          background: var(--surface);
+          border: 1px solid var(--border);
+        }
+
+        .mgmt-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-family: var(--font-mono);
+          font-size: 0.85rem;
+        }
+
+        .mgmt-table th {
+          background: rgba(255, 255, 255, 0.02);
+          padding: 14px 16px;
+          text-align: left;
+          color: var(--neon);
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .mgmt-table td {
+          padding: 14px 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          vertical-align: middle;
+        }
+
+        .mgmt-table tr:hover td {
+          background: rgba(209, 255, 0, 0.02);
+        }
+
+        .badge-status {
+          display: inline-block;
+          padding: 4px 8px;
+          font-size: 0.7rem;
+          font-weight: 700;
+          letter-spacing: 1px;
+          border-radius: 2px;
+        }
+
+        .status-upcoming {
+          background: rgba(209, 255, 0, 0.15);
+          color: var(--neon);
+          border: 1px solid var(--neon);
+        }
+
+        .status-ongoing {
+          background: rgba(0, 220, 255, 0.15);
+          color: #00dcff;
+          border: 1px solid #00dcff;
+        }
+
+        .status-completed {
+          background: rgba(150, 150, 150, 0.15);
+          color: #aaa;
+          border: 1px solid #666;
+        }
+
+        .btn-action-edit {
           padding: 6px 12px;
-          fontSize: 0.7rem;
-          fontWeight: 600;
-          borderRadius: 4px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--border);
+          color: #fff;
           cursor: pointer;
-          border: 1px solid;
-          background: transparent;
-          transition: all 0.3s ease;
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          margin-right: 6px;
+          transition: all 0.2s;
         }
 
-        .btn-edit {
-          color: #d1ff00;
-          border-color: rgba(209, 255, 0, 0.3);
+        .btn-action-edit:hover {
+          border-color: var(--neon);
+          color: var(--neon);
         }
 
-        .btn-edit:hover {
-          background: rgba(209, 255, 0, 0.1);
+        .btn-action-archive {
+          padding: 6px 12px;
+          background: rgba(255, 170, 0, 0.1);
+          border: 1px solid rgba(255, 170, 0, 0.4);
+          color: #ffaa00;
+          cursor: pointer;
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          transition: all 0.2s;
         }
 
-        .btn-delete {
-          color: #ff6464;
-          border-color: rgba(255, 100, 100, 0.3);
+        .btn-action-archive:hover {
+          background: rgba(255, 170, 0, 0.25);
+          color: #fff;
         }
 
-        .btn-delete:hover {
-          background: rgba(255, 100, 100, 0.1);
+        .btn-action-restore {
+          padding: 6px 12px;
+          background: rgba(100, 255, 100, 0.1);
+          border: 1px solid rgba(100, 255, 100, 0.4);
+          color: #64ff64;
+          cursor: pointer;
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          margin-right: 6px;
+          transition: all 0.2s;
         }
 
-        .alert {
-          padding: 15px 20px;
-          borderRadius: 4px;
-          marginBottom: 20px;
+        .btn-action-restore:hover {
+          background: rgba(100, 255, 100, 0.25);
         }
 
-        .alert-error {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff6464;
+        .btn-action-delete {
+          padding: 6px 12px;
+          background: rgba(255, 60, 60, 0.1);
+          border: 1px solid rgba(255, 60, 60, 0.4);
+          color: #ff5555;
+          cursor: pointer;
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          transition: all 0.2s;
+        }
+
+        .btn-action-delete:hover {
+          background: rgba(255, 60, 60, 0.3);
+          color: #fff;
+        }
+
+        .alert-banner {
+          padding: 12px 18px;
+          margin-bottom: 20px;
+          font-family: var(--font-mono);
+          font-size: 0.85rem;
+          border-radius: 4px;
         }
 
         .alert-success {
           background: rgba(100, 255, 100, 0.1);
-          border: 1px solid rgba(100, 255, 100, 0.3);
+          border: 1px solid rgba(100, 255, 100, 0.4);
           color: #64ff64;
         }
 
-        .empty-state {
-          textAlign: center;
-          padding: 60px 20px;
+        .alert-error {
+          background: rgba(255, 60, 60, 0.1);
+          border: 1px solid rgba(255, 60, 60, 0.4);
+          color: #ff5555;
+        }
+
+        .gallery-manager-box {
+          margin-top: 24px;
+          margin-bottom: 24px;
+          padding: 20px;
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px dashed rgba(209, 255, 0, 0.35);
+          border-radius: 4px;
+        }
+
+        .gallery-manager-title {
+          font-family: var(--font-mono);
+          font-size: 0.95rem;
+          color: var(--neon);
+          margin-bottom: 4px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        .gallery-manager-subtitle {
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          margin-bottom: 16px;
+        }
+
+        .gallery-add-row {
+          display: flex;
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+
+        .gallery-preview-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+          gap: 12px;
+        }
+
+        .gallery-preview-item {
+          position: relative;
+          background: #0d0d0d;
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          overflow: hidden;
+          padding: 6px;
+        }
+
+        .gallery-preview-thumb {
+          width: 100%;
+          height: 80px;
+          object-fit: cover;
+          display: block;
+          border-radius: 2px;
+        }
+
+        .btn-remove-gallery-img {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          background: rgba(255, 40, 40, 0.85);
+          border: none;
+          color: #fff;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          cursor: pointer;
+          font-size: 11px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn-remove-gallery-img:hover {
+          background: #ff0000;
+          transform: scale(1.15);
+        }
+
+        .gallery-url-caption {
+          font-family: var(--font-mono);
+          font-size: 0.65rem;
           color: #888;
+          margin-top: 4px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       `}</style>
 
-      <div className="event-section">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0 }}>Event Management</h2>
-          {!showForm && (
-            <button
-              className="btn-new-event"
-              onClick={() => setShowForm(true)}
-            >
-              Create New Event
-            </button>
-          )}
+      {success && <div className="alert-banner alert-success">✅ {success}</div>}
+      {error && <div className="alert-banner alert-error">❌ {error}</div>}
+
+      <div className="action-bar">
+        <div className="view-toggle">
+          <button
+            onClick={() => setViewArchived(false)}
+            className={`view-btn ${!viewArchived ? 'active' : ''}`}
+          >
+            Active Events ({activeEvents.length})
+          </button>
+          <button
+            onClick={() => setViewArchived(true)}
+            className={`view-btn ${viewArchived ? 'active' : ''}`}
+          >
+            📦 Archived Events ({archivedEvents.length})
+          </button>
         </div>
 
-        {error && <div className="alert alert-error">Error: {error}</div>}
-        {success && <div className="alert alert-success">Success: {success}</div>}
+        {!viewArchived && canCreateEvents(currentUser) && (
+          <button
+            onClick={() => {
+              if (showForm) resetForm();
+              else setShowForm(true);
+            }}
+            className="btn-create"
+          >
+            {showForm ? 'Cancel Form' : '+ Schedule New Event'}
+          </button>
+        )}
+      </div>
 
-        {showForm && (
-          <div className="form-container">
-            <h3 style={{ marginTop: 0 }}>{editingEvent ? 'Edit Event' : 'Create New Event'}</h3>
-            <form onSubmit={handleSubmit}>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label className="form-label">Event Title</label>
-                  <input
-                    type="text"
-                    name="title"
-                    className="form-input"
-                    placeholder="e.g., Code Sprint 2024"
-                    value={formData.title}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Category</label>
-                  <select
-                    name="category"
-                    className="form-select"
-                    value={formData.category}
-                    onChange={handleFormChange}
-                  >
-                    <option value="EVENT">EVENT</option>
-                    <option value="HACKATHON">HACKATHON</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Start Date</label>
-                  <input
-                    type="date"
-                    name="startDate"
-                    className="form-input"
-                    value={formData.startDate}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">End Date</label>
-                  <input
-                    type="date"
-                    name="endDate"
-                    className="form-input"
-                    value={formData.endDate}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Time Range</label>
-                  <input
-                    type="text"
-                    name="timeRange"
-                    className="form-input"
-                    placeholder="e.g., 9:00 AM - 5:00 PM"
-                    value={formData.timeRange}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Duration</label>
-                  <input
-                    type="text"
-                    name="duration"
-                    className="form-input"
-                    placeholder="e.g., 8 hours"
-                    value={formData.duration}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Location</label>
-                  <input
-                    type="text"
-                    name="location"
-                    className="form-input"
-                    placeholder="e.g., Main Auditorium"
-                    value={formData.location}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Redirect URL</label>
-                  <input
-                    type="url"
-                    name="redirectUrl"
-                    className="form-input"
-                    placeholder="https://example.com/event"
-                    value={formData.redirectUrl}
-                    onChange={handleFormChange}
-                  />
-                </div>
-                <div className="form-group full">
-                  <label className="form-label">Description</label>
-                  <textarea
-                    name="description"
-                    className="form-textarea"
-                    placeholder="Event description..."
-                    value={formData.description}
-                    onChange={handleFormChange}
-                  />
-                </div>
+      {showForm && (
+        <div className="form-card">
+          <h2 className="form-title">
+            {editingEvent ? 'Edit Operational Event' : 'Schedule New Operational Event'}
+          </h2>
+          <form onSubmit={handleSubmit}>
+            <div className="form-grid-3">
+              <div className="field-group">
+                <label className="field-label">Event Title *</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleFormChange}
+                  placeholder="e.g. AUTONOMOUS MOBILITY HACKATHON"
+                  className="field-input"
+                  required
+                />
               </div>
-              <div className="form-actions">
-                <button
-                  type="submit"
-                  className="btn-submit"
-                  disabled={loading}
+
+              <div className="field-group">
+                <label className="field-label">Event Type</label>
+                <select
+                  name="eventType"
+                  value={formData.eventType}
+                  onChange={handleFormChange}
+                  className="field-select"
                 >
-                  {loading ? 'Saving...' : editingEvent ? 'Update Event' : 'Create Event'}
-                </button>
+                  {EVENT_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">Operational Status *</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleFormChange}
+                  className="field-select"
+                  required
+                >
+                  {EVENT_STATUSES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-grid-3">
+              <div className="field-group">
+                <label className="field-label">Start Date *</label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleFormChange}
+                  className="field-input"
+                  required
+                />
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">End Date</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleFormChange}
+                  className="field-input"
+                />
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">Time Range</label>
+                <input
+                  type="text"
+                  name="timeRange"
+                  value={formData.timeRange}
+                  onChange={handleFormChange}
+                  placeholder="09:00 AM - 05:00 PM IST"
+                  className="field-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-grid-3">
+              <div className="field-group">
+                <label className="field-label">Duration</label>
+                <input
+                  type="text"
+                  name="duration"
+                  value={formData.duration}
+                  onChange={handleFormChange}
+                  placeholder="e.g. 48 Hours, 3 Hours"
+                  className="field-input"
+                />
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">Location / Platform *</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleFormChange}
+                  placeholder="e.g. Main Auditorium / Virtual"
+                  className="field-input"
+                  required
+                />
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">Organizer Entity</label>
+                <input
+                  type="text"
+                  name="organizer"
+                  value={formData.organizer}
+                  onChange={handleFormChange}
+                  placeholder="NexSync Autonomous Mobility"
+                  className="field-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-grid-3">
+              <div className="field-group">
+                <label className="field-label">RSU / RSVP Link</label>
+                <input
+                  type="url"
+                  name="rsvpLink"
+                  value={formData.rsvpLink}
+                  onChange={handleFormChange}
+                  placeholder="https://unstop.com/..."
+                  className="field-input"
+                />
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">Registration Deadline</label>
+                <input
+                  type="date"
+                  name="registrationDeadline"
+                  value={formData.registrationDeadline}
+                  onChange={handleFormChange}
+                  className="field-input"
+                />
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">Event Cover Image (Display Banner)</label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    name="coverImage"
+                    value={formData.coverImage || formData.image}
+                    onChange={handleFormChange}
+                    placeholder="https://... or /assets/..."
+                    className="field-input"
+                    style={{ flexGrow: 1 }}
+                  />
+                  <label
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid var(--border)',
+                      padding: '12px 14px',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.75rem',
+                      whiteSpace: 'nowrap',
+                      color: 'var(--neon)',
+                    }}
+                  >
+                    📁 Upload File
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      onChange={handleImageFileUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  {(formData.coverImage || formData.image) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          coverImage: '',
+                          image: '',
+                        }))
+                      }
+                      style={{
+                        background: 'rgba(255, 100, 100, 0.1)',
+                        border: '1px solid rgba(255, 100, 100, 0.3)',
+                        color: '#ff6464',
+                        padding: '12px 14px',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.75rem',
+                      }}
+                    >
+                      ✕ Clear
+                    </button>
+                  )}
+                </div>
+                {(formData.coverImage || formData.image) && (
+                  <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img
+                      src={formData.coverImage || formData.image}
+                      alt="Cover Preview"
+                      style={{ height: '50px', width: '90px', objectFit: 'cover', border: '1px solid var(--neon)' }}
+                    />
+                    <span style={{ fontSize: '0.72rem', color: '#64ff64', fontFamily: 'var(--font-mono)' }}>
+                      ✓ Cover image preview ready
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="field-group">
+                <label className="field-label">Video Media URL (YouTube, Vimeo, MP4)</label>
+                <input
+                  type="text"
+                  name="videoUrl"
+                  value={formData.videoUrl}
+                  onChange={handleFormChange}
+                  placeholder="https://youtube.com/watch?v=... or .mp4"
+                  className="field-input"
+                />
+                {formData.videoUrl && (
+                  <div style={{ marginTop: '4px', fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>
+                    {isVideoUrlValid(formData.videoUrl) ? (
+                      <span style={{ color: '#64ff64' }}>✓ Valid streaming source identified</span>
+                    ) : (
+                      <span style={{ color: '#ffb432' }}>⚠️ Unrecognized format. Please provide a YouTube, Vimeo, or .mp4/.webm URL.</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {formData.videoUrl && isVideoUrlValid(formData.videoUrl) && (
+              <div style={{ marginBottom: '18px', maxWidth: '500px' }}>
+                <span className="field-label" style={{ display: 'block', marginBottom: '6px' }}>VIDEO LIVE PREVIEW:</span>
+                <VideoPlayer url={formData.videoUrl} title="Event Video Preview" poster={formData.coverImage} />
+              </div>
+            )}
+
+            <div className="field-group" style={{ marginBottom: '18px' }}>
+              <label className="field-label">Event Description *</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleFormChange}
+                rows={3}
+                placeholder="Comprehensive technical briefing and workshop agenda..."
+                className="field-textarea"
+                required
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: editingEvent ? '16px' : '0' }}>
+              <input
+                type="checkbox"
+                id="isFeaturedEvent"
+                name="isFeatured"
+                checked={formData.isFeatured}
+                onChange={handleFormChange}
+                style={{ width: '16px', height: '16px', accentColor: 'var(--neon)' }}
+              />
+              <label htmlFor="isFeaturedEvent" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                Featured Event (Highlighted in telemetry displays)
+              </label>
+            </div>
+
+            {/* GALLERY IMAGES SECTION */}
+            <div className="gallery-manager-box">
+              <h4 className="gallery-manager-title">
+                📸 Event Gallery Images ({formData.galleryImages?.length || 0})
+              </h4>
+              <p className="gallery-manager-subtitle">
+                Manage photo URLs captured during or after this event. Public event detail page shows these in an interactive gallery grid.
+              </p>
+
+              <div className="gallery-add-row">
+                <input
+                  type="text"
+                  value={newGalleryImage}
+                  onChange={(e) => setNewGalleryImage(e.target.value)}
+                  placeholder="Enter image URL (https://... or /assets/...)"
+                  className="field-input"
+                  style={{ flex: 1 }}
+                />
                 <button
                   type="button"
-                  className="btn-cancel"
-                  onClick={resetForm}
+                  onClick={handleAddGalleryImage}
+                  className="btn-create"
+                  style={{ padding: '8px 16px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
                 >
-                  Cancel
+                  + Add Image
                 </button>
               </div>
-            </form>
-          </div>
-        )}
 
-        {events.length === 0 ? (
-          <div className="empty-state">
-            <div style={{ fontSize: '2rem', marginBottom: '15px' }}>No events yet</div>
-            <p>Create your first event to get started</p>
-          </div>
-        ) : (
-          <table className="events-table">
-            <thead>
+              {formData.galleryImages?.length > 0 && (
+                <div className="gallery-preview-grid">
+                  {formData.galleryImages.map((imgUrl, idx) => (
+                    <div key={idx} className="gallery-preview-item">
+                      <img
+                        src={imgUrl}
+                        alt={`Gallery ${idx + 1}`}
+                        className="gallery-preview-thumb"
+                        onError={(e) => {
+                          e.target.style.opacity = '0.3';
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGalleryImage(idx)}
+                        className="btn-remove-gallery-img"
+                        title="Remove image"
+                      >
+                        ✕
+                      </button>
+                      <div className="gallery-url-caption">
+                        {imgUrl.length > 25 ? imgUrl.substring(0, 22) + '...' : imgUrl}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="form-actions-row">
+              <button
+                type="button"
+                onClick={resetForm}
+                className="btn-action-edit"
+                style={{ padding: '10px 20px' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-create"
+                style={{ padding: '10px 24px' }}
+              >
+                {loading ? 'Processing...' : editingEvent ? 'Update Event' : 'Create Event'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <div className="table-responsive">
+        <table className="mgmt-table">
+          <thead>
+            <tr>
+              <th>Event Title</th>
+              <th>Status</th>
+              <th>Type</th>
+              <th>Date & Location</th>
+              <th>RSVP Link</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayedEvents.length === 0 ? (
               <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Date Range</th>
-                <th>Location</th>
-                <th>Redirect URL</th>
-                <th>Actions</th>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  {viewArchived ? 'No archived events found.' : 'No active events found. Create one above!'}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {events.map((event) => (
-                <tr key={event._id}>
-                  <td style={{ fontWeight: '600' }}>{event.title}</td>
+            ) : (
+              displayedEvents.map((evt) => (
+                <tr key={evt._id}>
+                  <td>
+                    <div style={{ fontWeight: '600', color: '#fff' }}>{evt.title}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      Org: {evt.organizer || 'NexSync Team'}
+                    </div>
+                  </td>
                   <td>
                     <span
-                      className={`category-badge category-${event.category.toLowerCase()}`}
+                      className={`badge-status ${
+                        evt.status === 'Upcoming'
+                          ? 'status-upcoming'
+                          : evt.status === 'Ongoing'
+                          ? 'status-ongoing'
+                          : 'status-completed'
+                      }`}
                     >
-                      {event.category}
+                      {evt.status}
                     </span>
                   </td>
                   <td>
-                    {new Date(event.startDate).toLocaleDateString()} - {new Date(event.endDate).toLocaleDateString()}
-                  </td>
-                  <td>{event.location}</td>
-                  <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <a href={event.redirectUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#d1ff00', textDecoration: 'none' }}>
-                      {event.redirectUrl}
-                    </a>
+                    <span style={{ color: 'var(--neon)' }}>{evt.eventType || 'EVENT'}</span>
                   </td>
                   <td>
-                    <div className="action-buttons">
-                      <button
-                        className="btn-edit"
-                        onClick={() => handleEdit(event)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn-delete"
-                        onClick={() => handleDelete(event._id)}
-                      >
-                        Delete
-                      </button>
+                    <div>{new Date(evt.startDate).toLocaleDateString()}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      {evt.location}
                     </div>
                   </td>
+                  <td>
+                    {evt.rsvpLink || evt.redirectUrl ? (
+                      <a
+                        href={evt.rsvpLink || evt.redirectUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: 'var(--neon)', textDecoration: 'underline' }}
+                      >
+                        RSVP Link ↗
+                      </a>
+                    ) : (
+                      <span style={{ color: '#666' }}>None</span>
+                    )}
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    {!evt.isArchived ? (
+                      <>
+                        {canUpdateEvents(currentUser) && (
+                          <button
+                            onClick={() => handleEdit(evt)}
+                            className="btn-action-edit"
+                          >
+                            ✏️ Edit
+                          </button>
+                        )}
+                        {canDeleteEvents(currentUser) && (
+                          <button
+                            onClick={() => handleArchive(evt._id, evt.title)}
+                            className="btn-action-archive"
+                          >
+                            📦 Archive
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {canUpdateEvents(currentUser) && (
+                          <button
+                            onClick={() => handleRestore(evt._id, evt.title)}
+                            className="btn-action-restore"
+                          >
+                            ↺ Restore
+                          </button>
+                        )}
+                        {canDeleteEvents(currentUser) && (
+                          <button
+                            onClick={() => handlePermanentDelete(evt._id, evt.title)}
+                            className="btn-action-delete"
+                          >
+                            🗑️ Permanently Delete
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -1,0 +1,20 @@
+{
+  "name": "nexsync-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NexSync Autonomous Mobility Platform",
+  "scripts": {
+    "dev": "npm run dev --prefix vite-project",
+    "dev:client": "npm run dev --prefix vite-project",
+    "dev:frontend": "npm run dev --prefix vite-project",
+    "dev:server": "npm run dev --prefix server",
+    "dev:backend": "npm run dev --prefix server",
+    "server": "npm run dev --prefix server",
+    "dev:all": "concurrently -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm run dev --prefix server\" \"npm run dev --prefix vite-project\"",
+    "build": "npm run build --prefix vite-project",
+    "start": "npm start --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

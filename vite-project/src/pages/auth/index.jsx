@@ -1,12 +1,11 @@
 import CommonForm from "@/components/common-form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { signUpFormControls, signInFormControls } from "@/config";
+import { signInFormControls } from "@/config";
 import { useContext, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/auth-context";
+import { canViewAdmin } from "@/utils/rbac";
 
 function AuthPage() {
-  const [activeTab, setActiveTab] = useState("signin");
   const [bootSequence, setBootSequence] = useState([]);
   const [isBooted, setIsBooted] = useState(false);
   const navigate = useNavigate();
@@ -55,9 +54,6 @@ function AuthPage() {
   const {
     signInFormData,
     setSignInFormData,
-    signUpFormData,
-    setSignUpFormData,
-    handleRegisterUser,
     handleLoginUser,
     auth,
     notification,
@@ -65,18 +61,10 @@ function AuthPage() {
   } = authContext || {};
 
   useEffect(() => {
-    console.log("🔍 AuthPage useEffect triggered");
-    console.log("   authenticated:", auth?.authenticated);
-    console.log("   user:", auth?.user);
-    console.log("   role:", auth?.user?.role);
-
     if (auth?.authenticated) {
-      console.log("✓ User is authenticated");
-      if (auth?.user?.role === "admin") {
-        console.log("🚀 REDIRECTING TO /admin");
+      if (canViewAdmin(auth?.user)) {
         navigate("/admin");
       } else {
-        console.log("🚀 REDIRECTING TO /");
         navigate("/");
       }
     }
@@ -85,7 +73,6 @@ function AuthPage() {
   if (!authContext || !isBooted) {
     return (
       <div className="min-h-screen bg-black text-[#ccff00] font-mono p-10 flex flex-col justify-end pb-24 z-50 relative">
-        {/* Scanline overlay for boot screen */}
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-[60] bg-[size:100%_2px,3px_100%]"></div>
 
         {bootSequence.map((line, i) => (
@@ -100,24 +87,11 @@ function AuthPage() {
     );
   }
 
-  function handleTabChange(value) {
-    setActiveTab(value);
-  }
-
   function checkIfSignInFormIsValid() {
     return (
       signInFormData &&
       signInFormData.userEmail !== "" &&
       signInFormData.password !== ""
-    );
-  }
-
-  function checkIfSignUpFormIsValid() {
-    return (
-      signUpFormData &&
-      signUpFormData.userName !== "" &&
-      signUpFormData.userEmail !== "" &&
-      signUpFormData.password !== ""
     );
   }
 
@@ -149,7 +123,7 @@ function AuthPage() {
             );
         }
 
-        /* Inputs - Cleaned up to be less boxy */
+        /* Inputs */
         .cyber-form input {
           background-color: transparent !important;
           border: none !important;
@@ -190,6 +164,7 @@ function AuthPage() {
             overflow: hidden !important;
             z-index: 1 !important;
             transition: all 0.3s !important;
+            width: 100% !important;
         }
         
         .cyber-form button[type="submit"]::before {
@@ -282,117 +257,73 @@ function AuthPage() {
 
       {/* --- THE MAIN HUD CARD --- */}
       <div className="relative z-10 w-full max-w-lg p-6 animate-in zoom-in duration-500">
-        {/* Floating holographic decorations */}
         <div className="absolute -top-8 -left-8 w-16 h-16 border-l-2 border-t-2 border-[#ccff00]/40 rounded-tl-sm pointer-events-none transition-all duration-700 group-hover/page:translate-x-2 group-hover/page:translate-y-2"></div>
         <div className="absolute -bottom-8 -right-8 w-16 h-16 border-r-2 border-b-2 border-[#ccff00]/40 rounded-br-sm pointer-events-none transition-all duration-700 group-hover/page:-translate-x-2 group-hover/page:-translate-y-2"></div>
 
         <div className="bg-[#050505]/80 backdrop-blur-xl border border-white/10 p-1 shadow-2xl relative overflow-hidden">
-          {/* Inner Border Line */}
           <div className="absolute inset-1 border border-white/5 pointer-events-none"></div>
 
-          {/* Content Container */}
           <div className="p-8 md:p-12 relative">
-            {/* Header with Glitch Effect */}
+            {/* Header */}
             <div className="mb-10 text-center relative group cursor-default">
-              <h1 className="glitch-hover text-4xl md:text-5xl font-black uppercase tracking-tighter text-white mb-2 transition-all select-none">
+              <h1 className="glitch-hover whitespace-nowrap text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter text-white mb-2 transition-all select-none">
                 ACCOUNT <span className="text-[#ccff00]">ACCESS</span>
               </h1>
               <div className="h-0.5 w-16 bg-[#ccff00] mx-auto mb-3 shadow-[0_0_15px_#ccff00]"></div>
               <p className="text-gray-500 text-[10px] tracking-[0.5em]">
-                /// sign in to continue
+                /// team member authentication
               </p>
             </div>
 
-            {/* Tabs */}
-            <Tabs
-              value={activeTab}
-              defaultValue="signin"
-              onValueChange={handleTabChange}
-              className="w-full"
-            >
-              {/* UPDATED: Removed bg-transparent and border-b border-white/10 to make it cleaner */}
-              <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 mb-8 rounded-none gap-4">
-                <TabsTrigger
-                  value="signin"
-                  // REMOVED: data-[state=active]:bg-white/5 (This was causing the odd box)
-                  // ADDED: shadow-[0_2px_0_#ccff00] for a clean underline effect
-                  className="rounded-none bg-transparent text-gray-500 uppercase tracking-widest text-xs font-bold py-3 border-b border-[#333] hover:text-white data-[state=active]:border-transparent data-[state=active]:shadow-[0_2px_0_#ccff00] data-[state=active]:text-[#ccff00] data-[state=active]:bg-transparent transition-all"
-                >
-                  Log In
-                </TabsTrigger>
-                <TabsTrigger
-                  value="signup"
-                  // REMOVED: data-[state=active]:bg-white/5
-                  // ADDED: shadow-[0_2px_0_#ccff00]
-                  className="rounded-none bg-transparent text-gray-500 uppercase tracking-widest text-xs font-bold py-3 border-b border-[#333] hover:text-white data-[state=active]:border-transparent data-[state=active]:shadow-[0_2px_0_#ccff00] data-[state=active]:text-[#ccff00] data-[state=active]:bg-transparent transition-all"
-                >
-                  Sign Up
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Notification Banner */}
-              {notification?.show && (
-                <div
-                  className={`auth-notification ${notification.type === "error" ? "auth-notification-error" : "auth-notification-success"}`}
-                  style={{
-                    marginBottom: "20px",
-                    padding: "15px 20px",
-                    fontFamily: "monospace",
-                    fontSize: "0.85rem",
-                    borderRadius: "0",
-                    position: "relative",
-                    overflow: "hidden",
-                    cursor: "pointer",
-                  }}
-                  onClick={() =>
-                    setNotification({ message: "", type: "", show: false })
-                  }
-                >
-                  <span style={{ marginRight: "10px" }}>
-                    {notification.type === "error" ? "✕" : "✓"}
-                  </span>
-                  {notification.message}
-                </div>
-              )}
-
-              {/* Forms with Cyber Styles */}
-              <div className="cyber-form relative">
-                <TabsContent
-                  value="signin"
-                  className="mt-0 pl-2 animate-in slide-in-from-right-2 fade-in duration-300"
-                >
-                  <CommonForm
-                    formControls={signInFormControls}
-                    formData={signInFormData}
-                    setFormData={setSignInFormData}
-                    handleSubmit={handleLoginUser}
-                    buttonText="Initiate Link"
-                    isButtonDisabled={!checkIfSignInFormIsValid()}
-                  />
-                </TabsContent>
-                <TabsContent
-                  value="signup"
-                  className="mt-0 pl-2 animate-in slide-in-from-left-2 fade-in duration-300"
-                >
-                  <CommonForm
-                    formControls={signUpFormControls}
-                    formData={signUpFormData}
-                    setFormData={setSignUpFormData}
-                    handleSubmit={handleRegisterUser}
-                    buttonText="Create Identity"
-                    isButtonDisabled={!checkIfSignUpFormIsValid()}
-                  />
-                </TabsContent>
+            {/* Notification Banner */}
+            {notification?.show && (
+              <div
+                className={`auth-notification ${notification.type === "error" ? "auth-notification-error" : "auth-notification-success"}`}
+                style={{
+                  marginBottom: "20px",
+                  padding: "15px 20px",
+                  fontFamily: "monospace",
+                  fontSize: "0.85rem",
+                  borderRadius: "0",
+                  position: "relative",
+                  overflow: "hidden",
+                  cursor: "pointer",
+                }}
+                onClick={() =>
+                  setNotification({ message: "", type: "", show: false })
+                }
+              >
+                <span style={{ marginRight: "10px" }}>
+                  {notification.type === "error" ? "✕" : "✓"}
+                </span>
+                {notification.message}
               </div>
-            </Tabs>
+            )}
+
+            {/* Form */}
+            <div className="cyber-form relative">
+              <CommonForm
+                formControls={signInFormControls}
+                formData={signInFormData}
+                setFormData={setSignInFormData}
+                handleSubmit={handleLoginUser}
+                buttonText="Initiate Link"
+                isButtonDisabled={!checkIfSignInFormIsValid()}
+              />
+            </div>
+
+            {/* Notice */}
+            <div className="mt-8 text-center text-[10px] text-gray-500 font-mono">
+              Accounts are provisioned by Club Coordinator.
+            </div>
 
             {/* Footer Status Bar */}
-            <div className="mt-12 flex justify-between items-center text-[9px] uppercase tracking-widest text-gray-600 border-t border-white/5 pt-4 select-none">
+            <div className="mt-8 flex justify-between items-center text-[9px] uppercase tracking-widest text-gray-600 border-t border-white/5 pt-4 select-none">
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-[#ccff00] rounded-full animate-[pulse_2s_infinite] shadow-[0_0_5px_#ccff00]"></span>
                 Server: Online
               </div>
-              <div />
+              <div>AUTH: TEAMMEMBER_V2</div>
             </div>
           </div>
         </div>

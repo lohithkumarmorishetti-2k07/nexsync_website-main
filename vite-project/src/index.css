@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
 @custom-variant dark (&:is(.dark *));
 
 @media (prefers-color-scheme: light) {
@@ -134,3 +135,189 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ==========================================================================
+   NEXSYNC CORE DESIGN SYSTEM & CYBERPUNK THEME TOKENS
+   ========================================================================== */
+:root {
+  --neon: #d1ff00;
+  --neon-dim: rgba(209, 255, 0, 0.15);
+  --neon-glow: rgba(209, 255, 0, 0.35);
+  --bg: #050505;
+  --surface: #0a0a0a;
+  --surface-highlight: #111111;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-bright: rgba(209, 255, 0, 0.4);
+  --text: #ffffff;
+  --text-secondary: #888888;
+  --font-display: 'Teko', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+  background-color: var(--bg);
+}
+
+body {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Only enable cursor: none on desktop fine-pointer devices */
+@media (hover: hover) and (pointer: fine) {
+  .app-root, .app-root a, .app-root button {
+    cursor: none;
+  }
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Common Section Layout */
+.content-section {
+  padding: 120px 5% 60px;
+  max-width: 1400px;
+  margin: 0 auto;
+  scroll-margin-top: 100px;
+}
+
+.section-header {
+  margin-bottom: 60px;
+  border-left: 3px solid var(--neon);
+  padding-left: 28px;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  color: var(--neon);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 2.5rem;
+  }
+  .content-section {
+    padding: 90px 4% 40px;
+  }
+}
+
+/* Common Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 32px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  transition: all 0.3s var(--ease);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--neon);
+  color: #050505;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 25px var(--neon-glow);
+  transform: translateY(-2px);
+  color: #000;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: white;
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--neon);
+  color: var(--neon);
+  transform: translateY(-2px);
+}
+
+.btn-outline-neon {
+  background: transparent;
+  color: var(--neon);
+  border: 1px solid var(--neon);
+  padding: 12px 28px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: all 0.3s var(--ease);
+}
+
+.btn-outline-neon:hover {
+  background: var(--neon);
+  color: #000;
+  box-shadow: 0 0 20px var(--neon-glow);
+  transform: translateY(-2px);
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.8s var(--ease) forwards;
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.8s var(--ease) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(25px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon);
+}
+

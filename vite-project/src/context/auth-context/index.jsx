@@ -1,12 +1,11 @@
-import { initialSignInFormData, initialSignUpFormData } from "@/config";
-import { checkAuthService, loginService, registerService } from "@/services";
+import { initialSignInFormData } from "@/config";
+import { checkAuthService, loginService } from "@/services";
 import { createContext, useEffect, useState } from "react";
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [signInFormData, setSignInFormData] = useState(initialSignInFormData);
-  const [signUpFormData, setSignUpFormData] = useState(initialSignUpFormData);
   const [auth, setAuth] = useState({
     authenticated: false,
     user: null,
@@ -17,64 +16,18 @@ export const AuthProvider = ({ children }) => {
     type: "",
     show: false,
   });
-  async function handleRegisterUser(event) {
-    event.preventDefault();
-    try {
-      const data = await registerService(signUpFormData);
-      console.log("User registered:", data);
-      if (data.success) {
-        setNotification({
-          message: "Registration successful! Please log in.",
-          type: "success",
-          show: true,
-        });
-        // Reset form
-        setSignUpFormData(initialSignUpFormData);
-        // Auto-hide after 5 seconds
-        setTimeout(
-          () => setNotification({ message: "", type: "", show: false }),
-          5000,
-        );
-      } else {
-        setNotification({
-          message: data.message || "Registration failed. Please try again.",
-          type: "error",
-          show: true,
-        });
-        setTimeout(
-          () => setNotification({ message: "", type: "", show: false }),
-          5000,
-        );
-      }
-    } catch (error) {
-      console.error("Registration error:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Registration failed. Please check your connection and try again.";
-      setNotification({ message: errorMessage, type: "error", show: true });
-      setTimeout(
-        () => setNotification({ message: "", type: "", show: false }),
-        5000,
-      );
-    }
-  }
+
   async function handleLoginUser(event) {
-    event.preventDefault();
+    if (event && event.preventDefault) event.preventDefault();
     try {
       const data = await loginService(signInFormData);
-      console.log("🔐 Login Response:", data);
       if (data && data.success) {
         const token = data.data.accessToken;
         sessionStorage.setItem("accessToken", token);
-        console.log("✅ Token stored:", token);
-        console.log("👤 User role:", data.data.user.role);
-        console.log("📍 User data:", JSON.stringify(data.data.user));
         setAuth({
           authenticated: true,
           user: data.data.user,
         });
-        console.log("🎯 Auth state updated, redirecting...");
       } else {
         setNotification({
           message:
@@ -96,7 +49,7 @@ export const AuthProvider = ({ children }) => {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
-        "Login failed. Please check your connection and try again.";
+        "Login failed. Please check your connection and credentials.";
       setNotification({ message: errorMessage, type: "error", show: true });
       setTimeout(
         () => setNotification({ message: "", type: "", show: false }),
@@ -144,6 +97,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }
+
   useEffect(() => {
     checkAuthUser();
   }, []);
@@ -161,9 +115,6 @@ export const AuthProvider = ({ children }) => {
       value={{
         signInFormData,
         setSignInFormData,
-        signUpFormData,
-        setSignUpFormData,
-        handleRegisterUser,
         handleLoginUser,
         handleLogout,
         auth,
@@ -172,8 +123,8 @@ export const AuthProvider = ({ children }) => {
       }}
     >
       {loading ? (
-        <div className="flex items-center justify-center min-h-screen">
-          Loading...
+        <div className="flex items-center justify-center min-h-screen bg-black text-[#ccff00] font-mono text-sm">
+          INITIALIZING TELEMETRY LINK...
         </div>
       ) : (
         children

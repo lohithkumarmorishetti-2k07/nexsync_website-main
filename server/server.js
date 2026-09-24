@@ -2,38 +2,81 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/nexsync';
+
+// Route Handlers
 const authRoutes = require('./routes/auth-routes');
-const appRoutes = require('./routes/project-application-routes');
 const projectRoutes = require('./routes/project-routes');
 const eventRoutes = require('./routes/event-routes');
 const teamRoutes = require('./routes/team-routes');
 
-cors({
-    origin: process.env.CLIENT_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+// Allowed Origins for CORS (supports comma-separated list in CLIENT_URL for production)
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map((origin) => origin.trim())
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.indexOf(origin) !== -1 ||
+        origin.endsWith('.vercel.app') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('CORS policy: Not allowed by CORS origin validation'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-});
-// Middleware
-app.use(cors());
-app.use(express.json());
-// Database connection
-mongoose.connect(MONGO_URI).then(() => {
-    console.log('Connected to MongoDB');
-}).catch((err) => {
-    console.error('Error connecting to MongoDB:', err);
-});
+  })
+);
 
-//routes configuration
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Database Connection
+mongoose
+  .connect(MONGO_URI)
+  .then(() => {
+    console.log('✅ Connected to MongoDB Atlas / Local Instance');
+  })
+  .catch((err) => {
+    console.error('❌ Error connecting to MongoDB:', err);
+  });
+
+// API Routes
 app.use('/auth', authRoutes);
-app.use('/api/applications', appRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/team', teamRoutes);
 
+// Health check endpoint for Render / monitoring
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    service: 'NexSync Autonomous Mobility API',
+  });
+});
+
+// Centralized error handler
+app.use((err, req, res, next) => {
+  console.error('Server Unhandled Error:', err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+  });
+});
+
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 NexSync Server running on port ${PORT}`);
 });

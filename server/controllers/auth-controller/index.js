@@ -1,109 +1,99 @@
-const User = require("../../models/User");
+const TeamMember = require("../../models/TeamMember");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { getEffectivePermissions } = require("../../config/rbac");
 
-const registerUser = async (req, res) => {
-  try {
-    const { userName, userEmail, password, role } = req.body;
-
-    // Validate required fields
-    if (!userName || !userEmail || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
-    }
-
-    const existingUser = await User.findOne({
-      $or: [{ userEmail }, { userName }],
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "User name or user email already exists",
-      });
-    }
-
-    const hashPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({
-      userName,
-      userEmail,
-      role,
-      password: hashPassword,
-    });
-
-    await newUser.save();
-
-    return res.status(201).json({
-      success: true,
-      message: "User registered successfully!",
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error during registration",
-    });
-  }
-};
-
+/**
+ * Team Member Login
+ * Authoritative authentication solely against TeamMember records.
+ * Public registration is disabled; accounts are provisioned exclusively by Club Coordinator.
+ */
 const loginUser = async (req, res) => {
   try {
-    const { userEmail, password } = req.body;
+    const { userEmail, email, password } = req.body;
+    const inputEmail = userEmail || email;
 
-    // Validate required fields
-    if (!userEmail || !password) {
+    if (!inputEmail || !password) {
       return res.status(400).json({
         success: false,
         message: "Email and password are required",
       });
     }
 
-    const checkUser = await User.findOne({ userEmail });
+    const normalizedEmail = inputEmail.toLowerCase().trim();
 
-    if (!checkUser || !(await bcrypt.compare(password, checkUser.password))) {
+    // Query active team member including passwordHash (which is select: false by default)
+    const member = await TeamMember.findOne({
+      email: normalizedEmail,
+      isArchived: { $ne: true },
+    }).select("+passwordHash");
+
+    if (!member) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid email or password",
       });
     }
 
+    if (!member.passwordHash) {
+      return res.status(401).json({
+        success: false,
+        message: "Account has no login credentials assigned. Please contact the Club Coordinator.",
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, member.passwordHash);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    const effectivePermissions = getEffectivePermissions(member);
+    const secret = process.env.JWT_SECRET || "JWT_SECRET";
+
     const accessToken = jwt.sign(
       {
-        _id: checkUser._id,
-        userName: checkUser.userName,
-        userEmail: checkUser.userEmail,
-        role: checkUser.role,
+        _id: member._id,
+        name: member.name,
+        email: member.email,
+        role: member.role,
+        domain: member.domain,
+        effectivePermissions,
       },
-      "JWT_SECRET",
+      secret,
       { expiresIn: "120m" }
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Logged in successfully",
       data: {
         accessToken,
         user: {
-          _id: checkUser._id,
-          userName: checkUser.userName,
-          userEmail: checkUser.userEmail,
-          role: checkUser.role,
+          _id: member._id,
+          name: member.name,
+          email: member.email,
+          userName: member.name, // backward compatibility
+          userEmail: member.email, // backward compatibility
+          role: member.role,
+          domain: member.domain,
+          image: member.image || "",
+          customPermissions: member.customPermissions || [],
+          effectivePermissions,
         },
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Team member login error:", error);
     return res.status(500).json({
       success: false,
-      message: "Server error during login",
+      message: "Server error during login authentication",
     });
   }
 };
 
-
 module.exports = {
-  registerUser, 
-    loginUser
+  loginUser,
 };

@@ -6,27 +6,26 @@ const verifyToken = (token, secretKey) => {
 
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  console.log(authHeader, "authHeader");
 
-  if (!authHeader) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({
       success: false,
-      message: "User is not authenticated",
+      message: "User is not authenticated. Bearer token missing.",
     });
   }
 
   const token = authHeader.split(" ")[1];
 
   try {
-    const payload = verifyToken(token, "JWT_SECRET");
+    const secret = process.env.JWT_SECRET || "JWT_SECRET";
+    const payload = verifyToken(token, secret);
 
     req.user = payload;
-
     next();
   } catch (e) {
     return res.status(401).json({
       success: false,
-      message: "invalid token",
+      message: "Invalid or expired token",
     });
   }
 };
