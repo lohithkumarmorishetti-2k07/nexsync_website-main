@@ -63,6 +63,21 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/team', teamRoutes);
 
+// Root endpoint info
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'NexSync Autonomous Mobility Platform API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      team: '/api/team',
+      projects: '/api/projects',
+      events: '/api/events',
+    },
+  });
+});
+
 // Health check endpoint for Render / monitoring
 app.get('/health', (req, res) => {
   res.json({
