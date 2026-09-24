@@ -42,6 +42,9 @@ const Footer = () => {
             <li>
               <Link to="/team">Command Roster</Link>
             </li>
+            <li>
+              <Link to="/auth">Member Portal</Link>
+            </li>
           </ul>
         </div>
 

@@ -103,7 +103,7 @@ const Navbar = () => {
               Contact
             </a>
 
-            {auth?.authenticated && (
+            {auth?.authenticated ? (
               <>
                 {canViewAdmin(auth?.user) && (
                   <Link
@@ -122,6 +122,14 @@ const Navbar = () => {
                   Logout
                 </button>
               </>
+            ) : (
+              <Link
+                to="/auth"
+                className={`nav-link hover-trigger ${isCurrent("/auth") ? "active" : ""}`}
+                style={{ color: "var(--neon)" }}
+              >
+                Login
+              </Link>
             )}
           </div>
 
@@ -183,7 +191,7 @@ const Navbar = () => {
               Contact
             </a>
 
-            {auth?.authenticated && (
+            {auth?.authenticated ? (
               <>
                 {canViewAdmin(auth?.user) && (
                   <Link
@@ -202,6 +210,15 @@ const Navbar = () => {
                   Logout ({auth?.user?.name || auth?.user?.userName || "Member"})
                 </button>
               </>
+            ) : (
+              <Link
+                to="/auth"
+                className={`mobile-link ${isCurrent("/auth") ? "active" : ""}`}
+                style={{ color: "var(--neon)" }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Member Login
+              </Link>
             )}
           </div>
         )}
