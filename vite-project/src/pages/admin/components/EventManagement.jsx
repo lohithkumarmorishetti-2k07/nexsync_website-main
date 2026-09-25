@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from '@/api/axiosInstance';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import { canCreateEvents, canUpdateEvents, canDeleteEvents } from '@/utils/rbac';
+import { formatImageUrl } from '@/utils/imageUrl';
 
 const EVENT_STATUSES = ['Upcoming', 'Ongoing', 'Completed'];
 const EVENT_TYPES = ['HACKATHON', 'WORKSHOP', 'SYMPOSIUM', 'SPRINT', 'EVENT'];
@@ -44,9 +45,13 @@ const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
       };
       // Keep coverImage and image in sync
       if (name === 'coverImage') {
-        updated.image = value;
+        const formatted = formatImageUrl(value);
+        updated.coverImage = formatted;
+        updated.image = formatted;
       } else if (name === 'image') {
-        updated.coverImage = value;
+        const formatted = formatImageUrl(value);
+        updated.image = formatted;
+        updated.coverImage = formatted;
       }
       return updated;
     });
@@ -56,7 +61,7 @@ const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
     if (!newGalleryImage.trim()) return;
     setFormData((prev) => ({
       ...prev,
-      galleryImages: [...(prev.galleryImages || []), newGalleryImage.trim()],
+      galleryImages: [...(prev.galleryImages || []), formatImageUrl(newGalleryImage.trim())],
     }));
     setNewGalleryImage('');
   };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from '@/api/axiosInstance';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import { canCreateProjects, canUpdateProjects, canDeleteProjects } from '@/utils/rbac';
+import { formatImageUrl } from '@/utils/imageUrl';
 
 const PROJECT_STATUSES = ['Active', 'Future', 'Completed', 'Alumni'];
 
@@ -42,9 +43,13 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
       };
       // Keep coverImage and thumbnail synchronized
       if (name === 'coverImage') {
-        updated.thumbnail = value;
+        const formatted = formatImageUrl(value);
+        updated.coverImage = formatted;
+        updated.thumbnail = formatted;
       } else if (name === 'thumbnail') {
-        updated.coverImage = value;
+        const formatted = formatImageUrl(value);
+        updated.thumbnail = formatted;
+        updated.coverImage = formatted;
       }
       return updated;
     });
@@ -54,7 +59,7 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
     if (!newGalleryImage.trim()) return;
     setFormData((prev) => ({
       ...prev,
-      galleryImages: [...(prev.galleryImages || []), newGalleryImage.trim()],
+      galleryImages: [...(prev.galleryImages || []), formatImageUrl(newGalleryImage.trim())],
     }));
     setNewGalleryImage('');
   };

@@ -1,5 +1,6 @@
 import React from "react";
 import { getDomainLabel } from "@/constants/teamConstants";
+import { formatImageUrl } from "@/utils/imageUrl";
 
 const MemberCard = ({ member }) => {
   if (!member) return null;
@@ -7,7 +8,7 @@ const MemberCard = ({ member }) => {
   const linkedInUrl = member.linkedinUrl || member.linkedIn;
   const githubUrl = member.githubUrl;
   const portfolioUrl = member.portfolioUrl;
-  const imageUrl = member.image || member.imgUrl;
+  const imageUrl = formatImageUrl(member.image || member.imgUrl);
   const name = member.name || "Member";
   const isAlumni = Boolean(member.isAlumni);
   const domainDisplay = getDomainLabel(member.domain) || member.wing || "Autonomous Systems";

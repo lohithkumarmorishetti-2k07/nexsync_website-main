@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from '@/api/axiosInstance';
 import { ROLES, DOMAINS, getDomainLabel } from '@/constants/teamConstants';
 import { PERMISSION_LABELS, PERMISSIONS } from '@/utils/rbac';
+import { formatImageUrl } from '@/utils/imageUrl';
 
 const ASSIGNABLE_PERMISSIONS = [
   PERMISSIONS.PROJECTS_CREATE,
@@ -37,10 +38,41 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
+    const finalValue = name === 'image' ? formatImageUrl(value) : value;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: finalValue,
     }));
+  };
+
+  const handleImageFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Invalid media file type. Supported formats: JPG, PNG, WebP, SVG.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Media file exceeds 5MB limit. Please upload an optimized image.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const base64 = uploadEvent.target.result;
+      setFormData((prev) => ({
+        ...prev,
+        image: base64,
+      }));
+      setSuccess('Team member photo loaded successfully.');
+    };
+    reader.onerror = () => {
+      setError('Failed to read image file.');
+    };
+    reader.readAsDataURL(file);
   };
 
   const resetForm = () => {
@@ -92,7 +124,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
       setLoading(true);
       const payload = {
         name: formData.name.trim(),
-        image: formData.image ? formData.image.trim() : '',
+        image: formData.image ? formatImageUrl(formData.image.trim()) : '',
         domain: formData.domain,
         role: formData.role,
         isAlumni: isAlumni,
@@ -739,19 +771,96 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
               )}
             </div>
 
-            <div className="form-grid-2">
-              <div className="field-group">
-                <label className="field-label">Photo / Profile Image URL</label>
+            <div className="field-group" style={{ marginBottom: '20px' }}>
+              <label className="field-label">Photo / Profile Image</label>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <input
                   type="text"
                   name="image"
                   value={formData.image}
                   onChange={handleFormChange}
-                  placeholder="https://... or /assets/..."
+                  placeholder="Paste direct URL, Google Drive share link, or upload local file"
                   className="field-input"
+                  style={{ flex: '1 1 300px' }}
                 />
+                <label
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid var(--border)',
+                    padding: '12px 14px',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.75rem',
+                    whiteSpace: 'nowrap',
+                    color: 'var(--neon)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  📁 Upload Local File
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    onChange={handleImageFileUpload}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                {formData.image && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        image: '',
+                      }))
+                    }
+                    style={{
+                      background: 'rgba(255, 100, 100, 0.1)',
+                      border: '1px solid rgba(255, 100, 100, 0.3)',
+                      color: '#ff6464',
+                      padding: '12px 14px',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.75rem',
+                    }}
+                  >
+                    ✕ Clear
+                  </button>
+                )}
               </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
+                💡 <strong>Local file:</strong> Max 5MB (JPG, PNG, WebP). | <strong>Google Drive link:</strong> Ensure file sharing is set to <em>&ldquo;Anyone with the link can view&rdquo;</em>.
+              </div>
+              {formData.image && (
+                <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '4px',
+                      border: '1px solid var(--neon)',
+                      overflow: 'hidden',
+                      background: '#111',
+                    }}
+                  >
+                    <img
+                      src={formData.image}
+                      alt="Preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                  <span style={{ fontSize: '0.8rem', color: '#64ff64', fontFamily: 'var(--font-mono)' }}>
+                    ✓ Photo loaded for preview
+                  </span>
+                </div>
+              )}
+            </div>
 
+            <div className="form-grid-3">
               <div className="field-group">
                 <label className="field-label">LinkedIn Profile URL</label>
                 <input
@@ -763,9 +872,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
                   className="field-input"
                 />
               </div>
-            </div>
 
-            <div className="form-grid-2">
               <div className="field-group">
                 <label className="field-label">GitHub URL</label>
                 <input
@@ -854,7 +961,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
                     <div className="member-cell-flex">
                       {member.image ? (
                         <img
-                          src={member.image}
+                          src={formatImageUrl(member.image)}
                           alt={member.name}
                           className="member-avatar-mini"
                           onError={(e) => {

@@ -17,6 +17,23 @@ const ALLOWED_DOMAINS = [
   "PR AND DESIGN",
 ];
 
+const formatImageUrl = (url) => {
+  if (!url || typeof url !== "string") return "";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("data:image/") || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+  const fileIdMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileIdMatch && fileIdMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${fileIdMatch[1]}`;
+  }
+  const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch && idMatch[1] && trimmed.includes("drive.google.com")) {
+    return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
+  }
+  return trimmed;
+};
+
 // Public list: non-archived members
 const listTeamMembers = async (req, res) => {
   try {
@@ -223,7 +240,7 @@ const createTeamMember = async (req, res) => {
       role: finalRole,
       domain: domain.trim(),
       customPermissions: validPermissions,
-      image: image ? image.trim() : "",
+      image: image ? formatImageUrl(image) : "",
       bio: bio ? bio.trim() : "",
       linkedinUrl: linkedinUrl ? linkedinUrl.trim() : "",
       githubUrl: githubUrl ? githubUrl.trim() : "",
@@ -339,7 +356,7 @@ const updateTeamMember = async (req, res) => {
     if (bio !== undefined) member.bio = bio.trim();
     if (joinDate !== undefined) member.joinDate = joinDate ? new Date(joinDate) : null;
     if (graduationYear !== undefined) member.graduationYear = graduationYear.trim();
-    if (image !== undefined) member.image = image.trim();
+    if (image !== undefined) member.image = formatImageUrl(image);
 
     await member.save();
 
