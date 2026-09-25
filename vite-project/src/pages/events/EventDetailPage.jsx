@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "@/api/axiosInstance";
 import VideoPlayer from "@/components/ui/VideoPlayer";
 import { isValidUrl } from "@/components/ui/EventCard";
+import { formatImageUrl, getDriveFallbackUrl } from "@/utils/imageUrl";
 
 const EventDetailPage = () => {
   const { id } = useParams();
@@ -138,12 +139,15 @@ const EventDetailPage = () => {
     );
   }
 
-  const cover = event.coverImage || event.image;
+  const rawCover = event.coverImage || event.image;
+  const cover = formatImageUrl(rawCover);
   const rsvp = event.rsvpLink || event.redirectUrl;
   const hasValidRsvp = isValidUrl(rsvp);
   const isInternal = hasValidRsvp && rsvp.trim().startsWith("/");
   const status = event.status || "Upcoming";
-  const gallery = Array.isArray(event.galleryImages) ? event.galleryImages.filter(Boolean) : [];
+  const gallery = Array.isArray(event.galleryImages)
+    ? event.galleryImages.map((g) => formatImageUrl(g)).filter(Boolean)
+    : [];
 
   return (
     <div className="event-detail-page">
@@ -185,7 +189,12 @@ const EventDetailPage = () => {
             alt={event.title}
             className="detail-cover-img"
             onError={(e) => {
-              e.target.parentElement.style.display = "none";
+              const fallback = getDriveFallbackUrl(rawCover);
+              if (fallback && e.target.src !== fallback) {
+                e.target.src = fallback;
+              } else {
+                e.target.parentElement.style.display = "none";
+              }
             }}
           />
         </div>

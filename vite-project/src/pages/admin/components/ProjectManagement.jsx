@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from '@/api/axiosInstance';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import { canCreateProjects, canUpdateProjects, canDeleteProjects } from '@/utils/rbac';
-import { formatImageUrl } from '@/utils/imageUrl';
+import { formatImageUrl, compressImageFile } from '@/utils/imageUrl';
 
 const PROJECT_STATUSES = ['Active', 'Future', 'Completed', 'Alumni'];
 
@@ -71,35 +71,51 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
     }));
   };
 
-  const handleImageFileUpload = (e) => {
+  const handleImageFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-    if (!allowedTypes.includes(file.type)) {
+    const fileName = file.name?.toLowerCase() || '';
+    const isImageExt = /\.(jpe?g|png|webp|svg|gif|jfif)$/i.test(fileName);
+    const isImageMime = file.type?.startsWith('image/');
+
+    if (!isImageMime && !isImageExt) {
       setError('Invalid media file type. Supported formats: JPG, PNG, WebP, SVG.');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Media file exceeds 5MB limit. Please upload an optimized image.');
+    if (file.size > 12 * 1024 * 1024) {
+      setError('Media file exceeds 12MB limit.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      const base64 = uploadEvent.target.result;
+    try {
+      const optimizedBase64 = await compressImageFile(file, 1400, 900, 0.82);
       setFormData((prev) => ({
         ...prev,
-        coverImage: base64,
-        thumbnail: base64,
+        coverImage: optimizedBase64,
+        thumbnail: optimizedBase64,
       }));
-      setSuccess('Project cover image loaded successfully.');
-    };
-    reader.onerror = () => {
-      setError('Failed to read image file.');
-    };
-    reader.readAsDataURL(file);
+      setSuccess('Project cover image loaded and optimized successfully.');
+    } catch (err) {
+      setError('Failed to process image file.');
+    }
+  };
+
+  const handleGalleryFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const optimizedBase64 = await compressImageFile(file, 1200, 800, 0.82);
+      setFormData((prev) => ({
+        ...prev,
+        galleryImages: [...(prev.galleryImages || []), optimizedBase64],
+      }));
+      setSuccess('Gallery photo loaded and added.');
+    } catch (err) {
+      setError('Failed to process gallery image.');
+    }
   };
 
   const isVideoUrlValid = (url) => {
@@ -740,7 +756,7 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
                     name="coverImage"
                     value={formData.coverImage || formData.thumbnail}
                     onChange={handleFormChange}
-                    placeholder="https://... or /assets/..."
+                    placeholder="https://..., Google Drive share link, or upload local file"
                     className="field-input"
                     style={{ flexGrow: 1 }}
                   />
@@ -929,14 +945,14 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
                 Manage screenshots, telemetry captures, and prototype photos. Public project detail page shows these in an interactive gallery grid.
               </p>
 
-              <div className="gallery-add-row">
+              <div className="gallery-add-row" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <input
                   type="text"
                   value={newGalleryImage}
                   onChange={(e) => setNewGalleryImage(e.target.value)}
-                  placeholder="Enter image URL (https://... or /assets/...)"
+                  placeholder="Enter image URL, Google Drive share link, or upload local file"
                   className="field-input"
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, minWidth: '220px' }}
                 />
                 <button
                   type="button"
@@ -944,8 +960,31 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
                   className="btn-create"
                   style={{ padding: '8px 16px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
                 >
-                  + Add Image
+                  + Add URL
                 </button>
+                <label
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid var(--border)',
+                    padding: '8px 14px',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.8rem',
+                    whiteSpace: 'nowrap',
+                    color: 'var(--neon)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  📁 Upload Photo
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    onChange={handleGalleryFileUpload}
+                    style={{ display: 'none' }}
+                  />
+                </label>
               </div>
 
               {formData.galleryImages?.length > 0 && (

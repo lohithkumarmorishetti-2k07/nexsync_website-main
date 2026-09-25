@@ -1,11 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { formatImageUrl, getDriveFallbackUrl } from "@/utils/imageUrl";
 
 const ProjectCard = ({ project }) => {
   if (!project) return null;
 
   const projId = project._id || project.projectId || project.id;
-  const coverImage = project.coverImage || project.thumbnail;
+  const rawCover = project.coverImage || project.thumbnail;
+  const coverImage = formatImageUrl(rawCover);
 
   const getStatusClass = (status) => {
     switch (status?.toUpperCase()) {
@@ -68,7 +70,12 @@ const ProjectCard = ({ project }) => {
               alt={project.projectName}
               className="project-thumb-img"
               onError={(e) => {
-                e.target.parentElement.parentElement.style.display = "none";
+                const fallback = getDriveFallbackUrl(rawCover);
+                if (fallback && e.target.src !== fallback) {
+                  e.target.src = fallback;
+                } else {
+                  e.target.parentElement.parentElement.style.display = "none";
+                }
               }}
             />
           </Link>

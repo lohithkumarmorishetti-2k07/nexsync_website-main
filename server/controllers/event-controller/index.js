@@ -1,6 +1,26 @@
 const mongoose = require("mongoose");
 const Event = require("../../models/Event");
 
+const formatImageUrl = (url) => {
+  if (!url || typeof url !== "string") return "";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("data:image/") || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+  const fileIdMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileIdMatch && fileIdMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${fileIdMatch[1]}`;
+  }
+  const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch && idMatch[1] && (trimmed.includes("drive.google.com") || trimmed.includes("docs.google.com"))) {
+    return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
+  }
+  if (!/^https?:\/\//i.test(trimmed) && trimmed.includes(".")) {
+    return `https://${trimmed}`;
+  }
+  return trimmed;
+};
+
 /**
  * Validate cover image and video media URLs/data payloads
  */
@@ -9,10 +29,10 @@ const validateMedia = (coverImage, videoUrl) => {
     const trimmed = coverImage.trim();
     const isUrl = /^https?:\/\/.+/i.test(trimmed);
     const isAsset = /^\/assets\/.+/i.test(trimmed);
-    const isDataUri = /^data:image\/(jpeg|png|webp|svg\+xml|gif);base64,[A-Za-z0-9+/=]+/i.test(trimmed);
+    const isDataUri = /^data:image\/[a-zA-Z0-9+.-]+;base64,/i.test(trimmed);
     if (!isUrl && !isAsset && !isDataUri) {
       throw new Error(
-        "Cover image must be a valid HTTP/HTTPS URL, asset path (/assets/...), or image base64 data URI (JPEG, PNG, WebP, SVG)."
+        "Cover image must be a valid HTTP/HTTPS URL, asset path (/assets/...), or image base64 data URI."
       );
     }
   }
@@ -150,7 +170,8 @@ const createEvent = async (req, res) => {
       });
     }
 
-    const primaryCover = (coverImage || image || "").trim();
+    const rawCover = (coverImage || image || "").trim();
+    const primaryCover = formatImageUrl(rawCover);
     const primaryVideo = (videoUrl || "").trim();
 
     // Validate media
@@ -170,7 +191,9 @@ const createEvent = async (req, res) => {
 
     let processedGallery = [];
     if (Array.isArray(galleryImages)) {
-      processedGallery = galleryImages.map((g) => String(g).trim()).filter(Boolean);
+      processedGallery = galleryImages
+        .map((g) => formatImageUrl(String(g).trim()))
+        .filter(Boolean);
     }
 
     const event = new Event({
@@ -239,7 +262,8 @@ const updateEvent = async (req, res) => {
       registeredCount,
     } = req.body;
 
-    const primaryCover = coverImage !== undefined ? coverImage.trim() : image !== undefined ? image.trim() : undefined;
+    const rawCover = coverImage !== undefined ? coverImage.trim() : image !== undefined ? image.trim() : undefined;
+    const primaryCover = rawCover !== undefined ? formatImageUrl(rawCover) : undefined;
     const primaryVideo = videoUrl !== undefined ? videoUrl.trim() : undefined;
 
     // Validate media if provided
@@ -255,7 +279,7 @@ const updateEvent = async (req, res) => {
     if (primaryVideo !== undefined) updateData.videoUrl = primaryVideo;
 
     if (galleryImages !== undefined && Array.isArray(galleryImages)) {
-      updateData.galleryImages = galleryImages.map((g) => String(g).trim()).filter(Boolean);
+      updateData.galleryImages = galleryImages.map((g) => formatImageUrl(String(g).trim())).filter(Boolean);
     }
 
     if (startDate !== undefined) updateData.startDate = new Date(startDate);

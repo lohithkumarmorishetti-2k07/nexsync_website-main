@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { formatImageUrl, getDriveFallbackUrl } from "@/utils/imageUrl";
 
 export const isValidUrl = (url) => {
   if (!url || typeof url !== "string") return false;
@@ -39,7 +40,8 @@ const EventCard = ({ event, isFeatured = false, showRsvp = true }) => {
   const hasValidRsvp = isValidUrl(rsvp);
   const isInternal = hasValidRsvp && rsvp.trim().startsWith("/");
   const status = event.status || "Upcoming";
-  const coverImage = event.coverImage || event.image;
+  const rawCover = event.coverImage || event.image;
+  const coverImage = formatImageUrl(rawCover);
   const eventId = event._id || event.id;
 
   return (
@@ -67,7 +69,12 @@ const EventCard = ({ event, isFeatured = false, showRsvp = true }) => {
               alt={event.title}
               className="event-cover-img"
               onError={(e) => {
-                e.target.parentElement.style.display = "none";
+                const fallback = getDriveFallbackUrl(rawCover);
+                if (fallback && e.target.src !== fallback) {
+                  e.target.src = fallback;
+                } else {
+                  e.target.parentElement.style.display = "none";
+                }
               }}
             />
           </Link>

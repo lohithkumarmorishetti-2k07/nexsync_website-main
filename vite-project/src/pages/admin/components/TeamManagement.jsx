@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from '@/api/axiosInstance';
 import { ROLES, DOMAINS, getDomainLabel } from '@/constants/teamConstants';
 import { PERMISSION_LABELS, PERMISSIONS } from '@/utils/rbac';
-import { formatImageUrl } from '@/utils/imageUrl';
+import { formatImageUrl, compressImageFile } from '@/utils/imageUrl';
 
 const ASSIGNABLE_PERMISSIONS = [
   PERMISSIONS.PROJECTS_CREATE,
@@ -45,34 +45,34 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
     }));
   };
 
-  const handleImageFileUpload = (e) => {
+  const handleImageFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-    if (!allowedTypes.includes(file.type)) {
+    const fileName = file.name?.toLowerCase() || '';
+    const isImageExt = /\.(jpe?g|png|webp|svg|gif|jfif)$/i.test(fileName);
+    const isImageMime = file.type?.startsWith('image/');
+
+    if (!isImageMime && !isImageExt) {
       setError('Invalid media file type. Supported formats: JPG, PNG, WebP, SVG.');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Media file exceeds 5MB limit. Please upload an optimized image.');
+    if (file.size > 12 * 1024 * 1024) {
+      setError('Media file exceeds 12MB limit.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      const base64 = uploadEvent.target.result;
+    try {
+      const optimizedBase64 = await compressImageFile(file, 800, 800, 0.85);
       setFormData((prev) => ({
         ...prev,
-        image: base64,
+        image: optimizedBase64,
       }));
-      setSuccess('Team member photo loaded successfully.');
-    };
-    reader.onerror = () => {
-      setError('Failed to read image file.');
-    };
-    reader.readAsDataURL(file);
+      setSuccess('Team member photo loaded and optimized successfully.');
+    } catch (err) {
+      setError('Failed to process image file.');
+    }
   };
 
   const resetForm = () => {

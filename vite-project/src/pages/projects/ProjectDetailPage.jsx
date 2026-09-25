@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "@/api/axiosInstance";
 import VideoPlayer from "@/components/ui/VideoPlayer";
+import { formatImageUrl, getDriveFallbackUrl } from "@/utils/imageUrl";
 
 const ProjectDetailPage = () => {
   const { id } = useParams();
@@ -171,8 +172,11 @@ const ProjectDetailPage = () => {
     );
   }
 
-  const cover = project.coverImage || project.thumbnail;
-  const gallery = Array.isArray(project.galleryImages) ? project.galleryImages.filter(Boolean) : [];
+  const rawCover = project.coverImage || project.thumbnail;
+  const cover = formatImageUrl(rawCover);
+  const gallery = Array.isArray(project.galleryImages)
+    ? project.galleryImages.map((g) => formatImageUrl(g)).filter(Boolean)
+    : [];
 
   return (
     <div className="project-detail-page">
@@ -207,7 +211,12 @@ const ProjectDetailPage = () => {
             alt={project.projectName}
             className="detail-cover-img"
             onError={(e) => {
-              e.target.parentElement.style.display = "none";
+              const fallback = getDriveFallbackUrl(rawCover);
+              if (fallback && e.target.src !== fallback) {
+                e.target.src = fallback;
+              } else {
+                e.target.parentElement.style.display = "none";
+              }
             }}
           />
         </div>
