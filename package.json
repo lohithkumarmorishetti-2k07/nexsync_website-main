@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "NexSync Autonomous Mobility Platform",
+  "workspaces": [
+    "vite-project",
+    "server"
+  ],
   "scripts": {
     "dev": "npm run dev --prefix vite-project",
     "dev:client": "npm run dev --prefix vite-project",
@@ -12,6 +16,7 @@
     "server": "npm run dev --prefix server",
     "dev:all": "concurrently -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm run dev --prefix server\" \"npm run dev --prefix vite-project\"",
     "build": "npm run build --prefix vite-project",
+    "postbuild": "node -e \"const fs=require('fs'); if(fs.existsSync('vite-project/dist')) { fs.cpSync('vite-project/dist', 'dist', {recursive: true}); console.log('Copied vite-project/dist to root dist'); }\"",
     "start": "npm start --prefix server"
   },
   "devDependencies": {
