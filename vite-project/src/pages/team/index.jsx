@@ -30,37 +30,71 @@ const TeamPage = () => {
     }
   };
 
+  // Helper to sort members by domain display order and then name
+  const sortMembers = (members) => {
+    return [...members].sort((a, b) => {
+      const orderA = DOMAIN_DISPLAY_ORDER.indexOf(a.domain);
+      const orderB = DOMAIN_DISPLAY_ORDER.indexOf(b.domain);
+      const rankA = orderA === -1 ? 999 : orderA;
+      const rankB = orderB === -1 ? 999 : orderB;
+      if (rankA !== rankB) return rankA - rankB;
+      return (a.name || "").localeCompare(b.name || "");
+    });
+  };
+
   // 1. Separate Active (Present) Members and Alumni
   const activeMembers = teamMembers.filter((m) => (m.role !== "Alumni" && !m.isAlumni) && !m.isArchived);
   const alumniMembers = teamMembers.filter((m) => (m.role === "Alumni" || m.isAlumni) && !m.isArchived);
 
   // 2. Active hierarchy classification (Club Coordinator -> Executive Member -> Wing Member)
+  const coordinatorMembers = activeMembers.filter(
+    (m) => m.role === "Club Coordinator" || m.memberType === "Club Coordinator"
+  );
+  const executiveMembers = activeMembers.filter(
+    (m) => m.role === "Executive Member" || m.memberType === "Executive Member"
+  );
+  const wingMembers = activeMembers.filter(
+    (m) => !coordinatorMembers.includes(m) && !executiveMembers.includes(m)
+  );
+
   const activeTiers = [
     {
       id: "coordinator",
       badge: "TIER 01 // OVERALL LEADERSHIP",
       title: "Club Coordinator",
-      members: activeMembers.filter((m) => m.role === "Club Coordinator" || m.memberType === "Club Coordinator"),
+      members: sortMembers(coordinatorMembers),
     },
     {
       id: "executives",
       badge: "TIER 02 // EXECUTIVE COMMITTEE",
       title: "Executive Members",
-      members: activeMembers.filter((m) => m.role === "Executive Member" || m.memberType === "Executive Member"),
+      members: sortMembers(executiveMembers),
     },
     {
       id: "wing-members",
       badge: "TIER 03 // ACTIVE ENGINEERING CREW",
       title: "Wing Members",
-      members: activeMembers.filter((m) => m.role === "Wing Member" || m.memberType === "Wing Member"),
+      members: sortMembers(wingMembers),
     },
   ].filter((tier) => tier.members.length > 0);
 
-  // 3. Alumni grouping by domain
+  // 3. Alumni grouping by domain (preserving DOMAIN_DISPLAY_ORDER)
   const alumniByDomain = DOMAIN_DISPLAY_ORDER.map((domain) => {
     const members = alumniMembers.filter((m) => m.domain === domain);
-    return { domain, label: getDomainLabel(domain), members };
+    return { domain, label: getDomainLabel(domain), members: sortMembers(members) };
   }).filter((group) => group.members.length > 0);
+
+  // Ensure any alumni with custom or unlisted domains are also preserved
+  const unmappedAlumni = alumniMembers.filter(
+    (m) => !DOMAIN_DISPLAY_ORDER.includes(m.domain)
+  );
+  if (unmappedAlumni.length > 0) {
+    alumniByDomain.push({
+      domain: "OTHER",
+      label: "General & Interdisciplinary",
+      members: sortMembers(unmappedAlumni),
+    });
+  }
 
   const displayedAlumniGroups =
     selectedAlumniDomain === "ALL"
@@ -440,6 +474,7 @@ const TeamPage = () => {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 28px;
+          align-items: stretch;
         }
 
         .empty-tier-notice {

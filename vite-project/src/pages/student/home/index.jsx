@@ -14,6 +14,7 @@ import axios from "@/api/axiosInstance";
 import EventCard from "@/components/ui/EventCard";
 import ProjectCard from "@/components/ui/ProjectCard";
 import MemberCard from "@/components/ui/MemberCard";
+import { DOMAIN_DISPLAY_ORDER } from "@/constants/teamConstants";
 
 /* --- 1. UTILITY: SCROLL REVEAL HOOK --- */
 const useScrollReveal = (ref, threshold = 0.1) => {
@@ -437,7 +438,7 @@ const HomeProjects = () => {
   );
 };
 
-/* --- 7. TEAM SUMMARY COMPONENT (HOME ONLY: PRESENT TEAM & ALUMNI PREVIEW) --- */
+/* --- 7. TEAM SUMMARY COMPONENT (HOME ONLY: LEADERSHIP - CLUB COORDINATOR & EXECUTIVE MEMBERS ONLY) --- */
 const HomeTeam = () => {
   const ref = useRef();
   const isVisible = useScrollReveal(ref);
@@ -451,7 +452,7 @@ const HomeTeam = () => {
   const fetchTeam = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/team");
+      const res = await axios.get("/api/team?leadership=true");
       const data = res.data?.data || res.data;
       if (Array.isArray(data)) {
         setTeamMembers(data);
@@ -463,12 +464,42 @@ const HomeTeam = () => {
     }
   };
 
-  const activeMembers = teamMembers.filter((m) => (m.role !== "Alumni" && !m.isAlumni) && !m.isArchived);
-  const alumniMembers = teamMembers.filter((m) => (m.role === "Alumni" || m.isAlumni) && !m.isArchived);
+  // Helper to sort leadership members by domain display order and then name
+  const sortMembers = (members) => {
+    return [...members].sort((a, b) => {
+      const orderA = DOMAIN_DISPLAY_ORDER.indexOf(a.domain);
+      const orderB = DOMAIN_DISPLAY_ORDER.indexOf(b.domain);
+      const rankA = orderA === -1 ? 999 : orderA;
+      const rankB = orderB === -1 ? 999 : orderB;
+      if (rankA !== rankB) return rankA - rankB;
+      return (a.name || "").localeCompare(b.name || "");
+    });
+  };
 
-  const clubCoordinators = activeMembers.filter((m) => m.role === "Club Coordinator" || m.memberType === "Club Coordinator");
-  const executiveMembers = activeMembers.filter((m) => m.role === "Executive Member" || m.memberType === "Executive Member");
-  const wingMembers = activeMembers.filter((m) => m.role === "Wing Member" || m.memberType === "Wing Member");
+  // STRICT REQUIREMENT: Home Page must display ONLY Club Coordinator and Executive Members.
+  // Wing Members and Alumni must NOT be displayed here.
+  const leadershipMembers = teamMembers.filter(
+    (m) =>
+      !m.isArchived &&
+      !m.isAlumni &&
+      m.role !== "Alumni" &&
+      (m.role === "Club Coordinator" ||
+        m.role === "Executive Member" ||
+        m.memberType === "Club Coordinator" ||
+        m.memberType === "Executive Member")
+  );
+
+  const clubCoordinators = sortMembers(
+    leadershipMembers.filter(
+      (m) => m.role === "Club Coordinator" || m.memberType === "Club Coordinator"
+    )
+  );
+
+  const executiveMembers = sortMembers(
+    leadershipMembers.filter(
+      (m) => m.role === "Executive Member" || m.memberType === "Executive Member"
+    )
+  );
 
   return (
     <section id="team" ref={ref} className={`content-section ${isVisible ? "visible" : ""}`}>
@@ -478,9 +509,9 @@ const HomeTeam = () => {
       </div>
 
       {loading ? (
-        <div className="loading-placeholder">SYNCHRONIZING PERSONNEL ROSTER...</div>
-      ) : activeMembers.length === 0 && alumniMembers.length === 0 ? (
-        <div className="loading-placeholder">NO PERSONNEL RECORDS FOUND</div>
+        <div className="loading-placeholder">SYNCHRONIZING LEADERSHIP ROSTER...</div>
+      ) : clubCoordinators.length === 0 && executiveMembers.length === 0 ? (
+        <div className="loading-placeholder">NO LEADERSHIP RECORDS FOUND</div>
       ) : (
         <>
           {/* TIER 01: CLUB COORDINATOR */}
@@ -511,39 +542,10 @@ const HomeTeam = () => {
             </div>
           )}
 
-          {/* TIER 03: WING MEMBERS */}
-          {wingMembers.length > 0 && (
-            <div className="team-tier-block" style={{ marginBottom: "40px" }}>
-              <h3 className="subsection-header">
-                <i className="fas fa-users"></i> WING MEMBERS
-              </h3>
-              <div className="home-wing-grid">
-                {wingMembers.map((member) => (
-                  <MemberCard key={member._id} member={member} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ALUMNI SUMMARY HIGHLIGHT */}
-          {alumniMembers.length > 0 && (
-            <div className="home-alumni-banner">
-              <div className="alumni-banner-badge">
-                <i className="fas fa-graduation-cap"></i> ALUMNI REGISTRY // FOUNDATION HERITAGE
-              </div>
-              <h4 className="alumni-banner-title">
-                {alumniMembers.length} Distinguished Researchers & Engineers
-              </h4>
-              <p className="alumni-banner-desc">
-                Honoring past contributors who developed autonomous vehicular navigation stacks, CAN-bus hardware, and V2X infrastructure.
-              </p>
-            </div>
-          )}
-
           {/* View Full Team CTA */}
           <div className="section-cta-container">
             <Link to="/team" className="btn btn-outline-neon hover-trigger">
-              <span>View Full Team / Alumni</span>
+              <span>View Full Team / Wing Members & Alumni</span>
               <i className="fas fa-arrow-right"></i>
             </Link>
           </div>
@@ -814,8 +816,9 @@ const StudentHomePage = () => {
 
         .home-leads-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 30px;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 28px;
+          align-items: stretch;
         }
 
         .home-wing-grid {

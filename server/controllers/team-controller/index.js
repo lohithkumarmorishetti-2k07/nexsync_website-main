@@ -23,12 +23,12 @@ const formatImageUrl = (url) => {
   if (trimmed.startsWith("data:image/") || trimmed.startsWith("/")) {
     return trimmed;
   }
-  const fileIdMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  const fileIdMatch = trimmed.match(/(?:\/file\/d\/|\/d\/)([a-zA-Z0-9_-]+)/);
   if (fileIdMatch && fileIdMatch[1]) {
     return `https://lh3.googleusercontent.com/d/${fileIdMatch[1]}`;
   }
   const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch && idMatch[1] && trimmed.includes("drive.google.com")) {
+  if (idMatch && idMatch[1] && (trimmed.includes("drive.google.com") || trimmed.includes("docs.google.com") || trimmed.includes("googleusercontent.com"))) {
     return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
   }
   return trimmed;
@@ -37,17 +37,25 @@ const formatImageUrl = (url) => {
 // Public list: non-archived members
 const listTeamMembers = async (req, res) => {
   try {
-    const { role, memberType, domain, isAlumni } = req.query;
+    const { role, memberType, domain, isAlumni, leadership } = req.query;
     let query = { isArchived: { $ne: true } };
 
-    if (role) {
-      query.role = role;
+    if (leadership === "true") {
+      // Home Page Leadership only: Club Coordinator and Executive Members
+      query.role = { $in: ["Club Coordinator", "Executive Member"] };
+      query.isAlumni = { $ne: true };
+    } else if (role) {
+      if (role.includes(",")) {
+        query.role = { $in: role.split(",").map((r) => r.trim()) };
+      } else {
+        query.role = role;
+      }
     } else if (memberType) {
       query.role = memberType === "Alumni Member" ? "Alumni" : memberType;
     }
 
     if (domain) query.domain = domain;
-    if (isAlumni !== undefined) {
+    if (isAlumni !== undefined && leadership !== "true") {
       if (isAlumni === "true") {
         query.role = "Alumni";
       } else {

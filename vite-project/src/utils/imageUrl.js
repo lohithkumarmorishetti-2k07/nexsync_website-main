@@ -11,15 +11,15 @@ export const extractGoogleDriveId = (url) => {
   if (!url || typeof url !== 'string') return null;
   const trimmed = url.trim();
 
-  // Match /file/d/FILE_ID
-  const fileIdMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  // Match /file/d/FILE_ID or /d/FILE_ID
+  const fileIdMatch = trimmed.match(/(?:\/file\/d\/|\/d\/)([a-zA-Z0-9_-]+)/);
   if (fileIdMatch && fileIdMatch[1]) {
     return fileIdMatch[1];
   }
 
   // Match id=FILE_ID
   const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch && idMatch[1] && (trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com'))) {
+  if (idMatch && idMatch[1] && (trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com') || trimmed.includes('googleusercontent.com'))) {
     return idMatch[1];
   }
 

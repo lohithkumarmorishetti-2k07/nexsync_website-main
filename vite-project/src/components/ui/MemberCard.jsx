@@ -1,6 +1,37 @@
 import React from "react";
 import { getDomainLabel } from "@/constants/teamConstants";
-import { formatImageUrl } from "@/utils/imageUrl";
+import { formatImageUrl, getDriveFallbackUrl } from "@/utils/imageUrl";
+
+/**
+ * Generates an SVG data URI avatar based on member name initials and status.
+ * Serves as an instant, zero-network-dependency offline fallback.
+ */
+const getInitialsAvatar = (name, isAlumni) => {
+  const initials = (name || "Member")
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const accentColor = isAlumni ? "#c084fc" : "#d1ff00";
+  const accentGlow = isAlumni ? "rgba(192, 132, 252, 0.15)" : "rgba(209, 255, 0, 0.15)";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 380" width="320" height="380">
+    <rect width="320" height="380" fill="#080808"/>
+    <defs>
+      <linearGradient id="cyberBg_${initials}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#141414"/>
+        <stop offset="100%" stop-color="#050505"/>
+      </linearGradient>
+    </defs>
+    <rect width="320" height="380" fill="url(#cyberBg_${initials})"/>
+    <circle cx="160" cy="135" r="56" fill="#141414" stroke="${accentColor}" stroke-width="1.5" stroke-opacity="0.4"/>
+    <path d="M85 285 C85 215 125 195 160 195 C195 195 235 215 235 285 Z" fill="#141414" stroke="${accentColor}" stroke-width="1.5" stroke-opacity="0.4"/>
+    <rect x="110" y="315" width="100" height="26" rx="3" fill="${accentGlow}" stroke="${accentColor}" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="160" y="333" fill="${accentColor}" font-family="monospace" font-size="14" font-weight="bold" letter-spacing="3" text-anchor="middle">${initials}</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
 
 const MemberCard = ({ member }) => {
   if (!member) return null;
@@ -8,27 +39,33 @@ const MemberCard = ({ member }) => {
   const linkedInUrl = member.linkedinUrl || member.linkedIn;
   const githubUrl = member.githubUrl;
   const portfolioUrl = member.portfolioUrl;
-  const imageUrl = formatImageUrl(member.image || member.imgUrl);
+  const rawImage = member.image || member.imgUrl || "";
+  const imageUrl = formatImageUrl(rawImage);
   const name = member.name || "Member";
   const isAlumni = Boolean(member.isAlumni);
   const domainDisplay = getDomainLabel(member.domain) || member.wing || "Autonomous Systems";
+  const fallbackAvatar = getInitialsAvatar(name, isAlumni);
 
   return (
     <div className={`member-card-wrapper hover-lift hover-trigger ${isAlumni ? "card-alumni" : "card-active"}`}>
       <div className="member-card">
         <div className="member-visual">
           <img
-            src={
-              imageUrl ||
-              `https://placehold.co/320x380/0a0a0a/333?text=${encodeURIComponent(name.split(" ")[0])}`
-            }
+            src={imageUrl || fallbackAvatar}
             alt={name}
+            loading="lazy"
             onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = `https://placehold.co/320x380/0a0a0a/333?text=${encodeURIComponent(name.split(" ")[0])}`;
+              const driveFallback = getDriveFallbackUrl(rawImage);
+              if (driveFallback && e.target.src !== driveFallback) {
+                e.target.src = driveFallback;
+              } else {
+                e.target.onerror = null;
+                e.target.src = fallbackAvatar;
+              }
             }}
           />
           <div className="visual-scanline"></div>
+          <div className="visual-gradient-vignette"></div>
 
           {/* Domain overlay chip */}
           <span className="visual-type-badge">{domainDisplay}</span>
@@ -110,8 +147,11 @@ const MemberCard = ({ member }) => {
 
       <style>{`
         .member-card-wrapper {
-          display: block;
+          display: flex;
+          flex-direction: column;
           height: 100%;
+          width: 100%;
+          min-width: 0;
         }
 
         .member-card {
@@ -121,8 +161,10 @@ const MemberCard = ({ member }) => {
           overflow: hidden;
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
           height: 100%;
+          width: 100%;
           display: flex;
           flex-direction: column;
+          box-sizing: border-box;
         }
 
         .card-active .member-card:hover {
@@ -138,17 +180,21 @@ const MemberCard = ({ member }) => {
         }
 
         .member-visual {
-          height: 280px;
+          height: 330px;
           width: 100%;
           position: relative;
           overflow: hidden;
-          background: #000;
+          background: #080808;
+          flex-shrink: 0;
         }
 
         .member-visual img {
           width: 100%;
           height: 100%;
+          max-width: 100%;
           object-fit: cover;
+          object-position: center 20%;
+          display: block;
           filter: grayscale(100%) sepia(80%) hue-rotate(80deg) brightness(0.8) contrast(1.2);
           opacity: 0.85;
           transition: all 0.5s ease-out;
@@ -162,7 +208,18 @@ const MemberCard = ({ member }) => {
         .member-card:hover .member-visual img {
           filter: grayscale(0%) sepia(0%) brightness(1.05) contrast(1);
           opacity: 1;
-          transform: scale(1.08);
+          transform: scale(1.06);
+        }
+
+        .visual-gradient-vignette {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 60px;
+          background: linear-gradient(to top, rgba(5, 5, 5, 0.85) 0%, rgba(5, 5, 5, 0) 100%);
+          pointer-events: none;
+          z-index: 3;
         }
 
         .visual-type-badge {
@@ -179,6 +236,10 @@ const MemberCard = ({ member }) => {
           letter-spacing: 1px;
           text-transform: uppercase;
           z-index: 4;
+          max-width: calc(100% - 24px);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .card-alumni .visual-type-badge {
@@ -245,7 +306,7 @@ const MemberCard = ({ member }) => {
         }
 
         .member-info {
-          padding: 18px 20px;
+          padding: 14px 18px 16px;
           background: var(--surface);
           border-top: 1px solid var(--border);
           position: relative;
@@ -255,6 +316,7 @@ const MemberCard = ({ member }) => {
           flex-direction: column;
           justify-content: space-between;
           transition: background 0.3s;
+          min-height: 0;
         }
 
         .card-active .member-card:hover .member-info {
@@ -269,12 +331,18 @@ const MemberCard = ({ member }) => {
 
         .member-name {
           font-family: var(--font-display);
-          font-size: 1.35rem;
+          font-size: 1.3rem;
+          line-height: 1.15;
           color: #ffffff;
-          margin-bottom: 6px;
+          margin-bottom: 4px;
           text-transform: uppercase;
           letter-spacing: 0.8px;
           transition: color 0.3s;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          word-break: break-word;
         }
 
         .card-active .member-card:hover .member-name {
@@ -288,8 +356,8 @@ const MemberCard = ({ member }) => {
         .member-meta-row {
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          margin-bottom: 8px;
+          gap: 2px;
+          margin-bottom: 6px;
         }
 
         .member-type-badge {
@@ -335,8 +403,8 @@ const MemberCard = ({ member }) => {
         .member-social-links {
           display: flex;
           gap: 12px;
-          margin-top: 10px;
-          padding-top: 12px;
+          margin-top: 8px;
+          padding-top: 10px;
           border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
@@ -354,6 +422,15 @@ const MemberCard = ({ member }) => {
         .card-alumni .social-icon-btn:hover {
           color: #c084fc;
           transform: translateY(-2px);
+        }
+
+        @media (max-width: 640px) {
+          .member-visual {
+            height: 300px;
+          }
+          .member-name {
+            font-size: 1.2rem;
+          }
         }
       `}</style>
     </div>
