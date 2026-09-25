@@ -7,6 +7,7 @@ const TeamPage = () => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedActiveDomain, setSelectedActiveDomain] = useState("ALL");
   const [selectedAlumniDomain, setSelectedAlumniDomain] = useState("ALL");
 
   useEffect(() => {
@@ -30,14 +31,25 @@ const TeamPage = () => {
     }
   };
 
-  // Helper to sort members by domain display order and then name
+  // Helper to sort members by domain display order, role hierarchy, and then name
   const sortMembers = (members) => {
+    const rolePriority = {
+      "Club Coordinator": 1,
+      "Executive Member": 2,
+      "Wing Member": 3,
+      "Alumni": 4,
+    };
     return [...members].sort((a, b) => {
       const orderA = DOMAIN_DISPLAY_ORDER.indexOf(a.domain);
       const orderB = DOMAIN_DISPLAY_ORDER.indexOf(b.domain);
       const rankA = orderA === -1 ? 999 : orderA;
       const rankB = orderB === -1 ? 999 : orderB;
       if (rankA !== rankB) return rankA - rankB;
+
+      const roleA = rolePriority[a.role] || rolePriority[a.memberType] || 99;
+      const roleB = rolePriority[b.role] || rolePriority[b.memberType] || 99;
+      if (roleA !== roleB) return roleA - roleB;
+
       return (a.name || "").localeCompare(b.name || "");
     });
   };
@@ -46,37 +58,28 @@ const TeamPage = () => {
   const activeMembers = teamMembers.filter((m) => (m.role !== "Alumni" && !m.isAlumni) && !m.isArchived);
   const alumniMembers = teamMembers.filter((m) => (m.role === "Alumni" || m.isAlumni) && !m.isArchived);
 
-  // 2. Active hierarchy classification (Club Coordinator -> Executive Member -> Wing Member)
-  const coordinatorMembers = activeMembers.filter(
-    (m) => m.role === "Club Coordinator" || m.memberType === "Club Coordinator"
-  );
-  const executiveMembers = activeMembers.filter(
-    (m) => m.role === "Executive Member" || m.memberType === "Executive Member"
-  );
-  const wingMembers = activeMembers.filter(
-    (m) => !coordinatorMembers.includes(m) && !executiveMembers.includes(m)
-  );
+  // 2. Active grouping by domain (preserving DOMAIN_DISPLAY_ORDER)
+  const activeByDomain = DOMAIN_DISPLAY_ORDER.map((domain) => {
+    const members = activeMembers.filter((m) => m.domain === domain);
+    return { domain, label: getDomainLabel(domain), members: sortMembers(members) };
+  }).filter((group) => group.members.length > 0);
 
-  const activeTiers = [
-    {
-      id: "coordinator",
-      badge: "TIER 01 // OVERALL LEADERSHIP",
-      title: "Club Coordinator",
-      members: sortMembers(coordinatorMembers),
-    },
-    {
-      id: "executives",
-      badge: "TIER 02 // EXECUTIVE COMMITTEE",
-      title: "Executive Members",
-      members: sortMembers(executiveMembers),
-    },
-    {
-      id: "wing-members",
-      badge: "TIER 03 // ACTIVE ENGINEERING CREW",
-      title: "Wing Members",
-      members: sortMembers(wingMembers),
-    },
-  ].filter((tier) => tier.members.length > 0);
+  // Ensure any active members with custom or unlisted domains are also preserved
+  const unmappedActive = activeMembers.filter(
+    (m) => !DOMAIN_DISPLAY_ORDER.includes(m.domain)
+  );
+  if (unmappedActive.length > 0) {
+    activeByDomain.push({
+      domain: "OTHER",
+      label: "General & Interdisciplinary",
+      members: sortMembers(unmappedActive),
+    });
+  }
+
+  const displayedActiveGroups =
+    selectedActiveDomain === "ALL"
+      ? activeByDomain
+      : activeByDomain.filter((g) => g.domain === selectedActiveDomain);
 
   // 3. Alumni grouping by domain (preserving DOMAIN_DISPLAY_ORDER)
   const alumniByDomain = DOMAIN_DISPLAY_ORDER.map((domain) => {
@@ -143,20 +146,44 @@ const TeamPage = () => {
                 <span className="count-label">{activeMembers.length} ACTIVE PERSONNEL</span>
               </div>
 
-              {activeTiers.length === 0 ? (
+              {/* Domain Filter Pills */}
+              {activeByDomain.length > 1 && (
+                <div className="active-filter-bar">
+                  <button
+                    onClick={() => setSelectedActiveDomain("ALL")}
+                    className={`filter-pill active-pill ${selectedActiveDomain === "ALL" ? "active" : ""}`}
+                  >
+                    All Domains ({activeMembers.length})
+                  </button>
+                  {activeByDomain.map((g) => (
+                    <button
+                      key={g.domain}
+                      onClick={() => setSelectedActiveDomain(g.domain)}
+                      className={`filter-pill active-pill ${selectedActiveDomain === g.domain ? "active" : ""}`}
+                    >
+                      {g.label} ({g.members.length})
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {activeByDomain.length === 0 ? (
                 <div className="empty-tier-notice">
                   <span>Currently synchronizing active operational crew roster.</span>
                 </div>
               ) : (
-                <div className="active-tiers-stack">
-                  {activeTiers.map((tier) => (
-                    <div key={tier.id} className="active-tier-group">
-                      <div className="tier-header-bar">
-                        <span className="tier-tag">{tier.badge}</span>
-                        <h3 className="tier-title">{tier.title}</h3>
+                <div className="active-domains-container">
+                  {displayedActiveGroups.map(({ domain, label, members }) => (
+                    <div key={domain} className="active-domain-subgroup">
+                      <div className="active-domain-header">
+                        <span className="active-terminal-symbol">//</span>
+                        <h3 className="active-domain-title">{label}</h3>
+                        <span className="active-domain-count">
+                          ({members.length} {members.length === 1 ? "MEMBER" : "MEMBERS"})
+                        </span>
                       </div>
                       <div className="team-cards-grid">
-                        {tier.members.map((member) => (
+                        {members.map((member) => (
                           <MemberCard key={member._id} member={member} />
                         ))}
                       </div>
@@ -351,38 +378,70 @@ const TeamPage = () => {
           letter-spacing: 1px;
         }
 
-        .active-tiers-stack {
+        .active-filter-bar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 36px;
+          padding-bottom: 18px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .filter-pill.active-pill:hover {
+          border-color: var(--neon);
+          color: var(--neon);
+          background: rgba(209, 255, 0, 0.05);
+        }
+
+        .filter-pill.active-pill.active {
+          background: rgba(209, 255, 0, 0.15);
+          border-color: var(--neon);
+          color: #ffffff;
+          font-weight: 700;
+        }
+
+        .active-domains-container {
           display: flex;
           flex-direction: column;
           gap: 50px;
         }
 
-        .active-tier-group {
+        .active-domain-subgroup {
           display: flex;
           flex-direction: column;
           gap: 20px;
         }
 
-        .tier-header-bar {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+        .active-domain-header {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 6px 14px;
+          background: rgba(209, 255, 0, 0.06);
+          border-left: 3px solid var(--neon);
+          width: fit-content;
         }
 
-        .tier-tag {
-          font-family: var(--font-mono);
-          font-size: 0.7rem;
+        .active-terminal-symbol {
           color: var(--neon);
-          letter-spacing: 1px;
-          text-transform: uppercase;
+          font-family: var(--font-mono);
+          font-weight: 700;
         }
 
-        .tier-title {
+        .active-domain-title {
           font-family: var(--font-display);
-          font-size: 1.8rem;
+          font-size: 1.25rem;
           color: #ffffff;
           letter-spacing: 0.5px;
+          margin: 0;
           text-transform: uppercase;
+        }
+
+        .active-domain-count {
+          font-family: var(--font-mono);
+          font-size: 0.72rem;
+          color: var(--text-secondary);
+          letter-spacing: 1px;
         }
 
         .alumni-section-caption {
