@@ -8,6 +8,7 @@ import { canViewAdmin } from "@/utils/rbac";
 function AuthPage() {
   const [bootSequence, setBootSequence] = useState([]);
   const [isBooted, setIsBooted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const authContext = useContext(AuthContext);
   const containerRef = useRef(null);
@@ -70,25 +71,6 @@ function AuthPage() {
     }
   }, [auth, navigate]);
 
-  if (!authContext || !isBooted) {
-    return (
-      <div className="min-h-screen bg-black text-[#ccff00] font-mono p-10 flex flex-col justify-end pb-24 z-50 relative">
-        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-[60] bg-[size:100%_2px,3px_100%]"></div>
-
-        {bootSequence.map((line, i) => (
-          <div
-            key={i}
-            className="text-sm md:text-base opacity-80 mb-1 tracking-wider border-r-2 border-[#ccff00] w-fit animate-pulse pr-2"
-          >
-            {line}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   function checkIfSignInFormIsValid() {
     return (
       signInFormData &&
@@ -106,6 +88,23 @@ function AuthPage() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (!authContext || !isBooted) {
+    return (
+      <div className="min-h-screen bg-black text-[#ccff00] font-mono p-10 flex flex-col justify-end pb-24 z-50 relative">
+        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-[60] bg-[size:100%_2px,3px_100%]"></div>
+
+        {bootSequence.map((line, i) => (
+          <div
+            key={i}
+            className="text-sm md:text-base opacity-80 mb-1 tracking-wider border-r-2 border-[#ccff00] w-fit animate-pulse pr-2"
+          >
+            {line}
+          </div>
+        ))}
+      </div>
+    );
   }
 
   return (
