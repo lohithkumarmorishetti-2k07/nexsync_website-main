@@ -166,12 +166,17 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
     }
   };
 
+  const VALID_ROLES = ['Club Coordinator', 'Executive Member', 'Wing Member'];
+
+  const sanitizeRole = (role) =>
+    VALID_ROLES.includes(role) ? role : 'Wing Member';
+
   const handleEdit = (member) => {
     setEditingMember(member);
     setFormData({
       name: member.name || '',
       image: member.image || '',
-      role: member.role || 'Wing Member',
+      role: sanitizeRole(member.role),
       domain: member.domain || DOMAINS[0],
       isAlumni: Boolean(member.isAlumni),
       email: member.email || '',
@@ -1118,21 +1123,42 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
                     </div>
                   </td>
                   <td>
-                    <span
-                      className={
-                        member.role === 'Club Coordinator'
-                          ? 'badge-role-coord'
-                          : member.role === 'Executive Member'
-                          ? 'badge-role-exec'
-                          : 'badge-role-wing'
-                      }
-                    >
-                      {member.role || 'Wing Member'}
-                    </span>
-                    {member.isAlumni && (
-                      <span className="badge-role-alumni" style={{ marginLeft: '6px' }}>
-                        ALUMNI
+                    {/* For alumni, show their actual role (not "Alumni") — alumni status is shown by the ALUMNI pill */}
+                    {!member.isAlumni && (
+                      <span
+                        className={
+                          member.role === 'Club Coordinator'
+                            ? 'badge-role-coord'
+                            : member.role === 'Executive Member'
+                            ? 'badge-role-exec'
+                            : 'badge-role-wing'
+                        }
+                      >
+                        {['Club Coordinator', 'Executive Member', 'Wing Member'].includes(member.role)
+                          ? member.role
+                          : 'Wing Member'}
                       </span>
+                    )}
+                    {member.isAlumni && (
+                      <>
+                        <span
+                          className={
+                            member.role === 'Club Coordinator'
+                              ? 'badge-role-coord'
+                              : member.role === 'Executive Member'
+                              ? 'badge-role-exec'
+                              : 'badge-role-wing'
+                          }
+                          style={{ opacity: 0.6 }}
+                        >
+                          {['Club Coordinator', 'Executive Member', 'Wing Member'].includes(member.role)
+                            ? member.role
+                            : 'Wing Member'}
+                        </span>
+                        <span className="badge-role-alumni" style={{ marginLeft: '6px' }}>
+                          ALUMNI
+                        </span>
+                      </>
                     )}
                   </td>
                   <td>

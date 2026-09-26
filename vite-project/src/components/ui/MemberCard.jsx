@@ -83,7 +83,9 @@ const MemberCard = ({ member }) => {
             {isAlumni ? (
               <div className="member-meta-row">
                 <span className="status-alumni-badge">
-                  <i className="fas fa-graduation-cap"></i> {member.role || "Alumni"}
+                  <i className="fas fa-graduation-cap"></i>{" "}
+                  {/* Show actual functional role, guard against legacy "Alumni" role value */}
+                  {member.role && member.role !== "Alumni" ? member.role : "Member"}
                 </span>
                 <span className="domain-sub-label">{domainDisplay}</span>
               </div>
