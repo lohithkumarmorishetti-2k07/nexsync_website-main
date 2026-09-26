@@ -1,9 +1,12 @@
 import React, { useRef, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
 
 const MainLayout = ({ children }) => {
+  const location = useLocation();
+  const isHome = location.pathname === "/";
   const cursorDotRef = useRef(null);
   const cursorCircleRef = useRef(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -93,7 +96,7 @@ const MainLayout = ({ children }) => {
       <Navbar />
 
       {/* MAIN CONTENT AREA */}
-      <main className="main-content-flow">{children}</main>
+      <main className={`main-content-flow ${isHome ? "home-content-flow" : "subpage-content-flow"}`}>{children}</main>
 
       {/* FOOTER */}
       <Footer />

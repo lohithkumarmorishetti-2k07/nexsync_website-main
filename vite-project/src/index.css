@@ -154,11 +154,12 @@
   --font-body: 'Space Grotesk', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --navbar-height: 84px;
 }
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 100px;
+  scroll-padding-top: 110px;
   background-color: var(--bg);
 }
 
@@ -187,7 +188,7 @@ a {
   padding: 120px 5% 60px;
   max-width: 1400px;
   margin: 0 auto;
-  scroll-margin-top: 100px;
+  scroll-margin-top: 110px;
 }
 
 .section-header {

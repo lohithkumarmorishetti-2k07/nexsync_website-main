@@ -260,6 +260,167 @@ const About = () => {
           </div>
         </div>
       </div>
+
+      {/* MENTOR SECTION (DIRECT CONTINUATION OF ABOUT SECTION ACCORDING TO REFERENCE SKETCH) */}
+      <div className="mentor-hud-grid">
+        {/* LEFT COLUMN: MENTOR PHOTOGRAPH */}
+        <div className="mentor-card mentor-photo-card hover-lift">
+          <div className="scan-line"></div>
+          <div className="mentor-photo-frame">
+            <img
+              src="/mentor.jpg"
+              alt="Dr. Hrishikesh Venkataraman"
+              className="mentor-photo-img"
+              loading="lazy"
+            />
+            <div className="visual-scanline"></div>
+            <div className="visual-gradient-vignette"></div>
+            <span className="mentor-photo-badge">CLUB MENTOR</span>
+            <span className="mentor-node-badge">IIIT SRI CITY</span>
+          </div>
+
+          <div className="mentor-caption-box">
+            <h3 className="mentor-name">Dr. Hrishikesh Venkataraman</h3>
+            <p className="mentor-position">Professor &amp; Dean (R&amp;D)</p>
+            <p className="mentor-affiliation">IIIT Sri City</p>
+            <div className="mentor-rg-tag">
+              <i className="fas fa-satellite-dish"></i>
+              <span>Smart Transportation Research Group</span>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: MENTOR INFORMATION */}
+        <div className="mentor-card mentor-info-card hover-lift">
+          <div className="mentor-card-header">
+            <div className="mentor-status-row">
+              <span className="card-badge" style={{ color: "var(--neon)", borderColor: "var(--neon)", marginBottom: 0 }}>
+                FACULTY MENTORSHIP &amp; R&amp;D DIRECTIVE
+              </span>
+              <div className="event-status" style={{ marginBottom: 0 }}>
+                <span className="blink-dot"></span> ADVISORY NODE
+              </div>
+            </div>
+            <h3 className="glitch-text-sm" style={{ marginTop: "14px", marginBottom: "6px" }}>
+              DR. HRISHIKESH VENKATARAMAN
+            </h3>
+            <p className="mentor-header-subtitle">
+              Professor &amp; Dean (R&amp;D), IIIT Sri City &bull; Leads the Smart Transportation Research Group
+            </p>
+          </div>
+
+          <div className="mentor-info-grid">
+            {/* EDUCATION */}
+            <div className="mentor-info-block">
+              <div className="mentor-block-title">
+                <i className="fas fa-graduation-cap"></i>
+                <span>EDUCATION</span>
+              </div>
+              <ul className="bullet-list" style={{ marginTop: "6px" }}>
+                <li>
+                  <strong>PhD</strong> &mdash; Jacobs University Bremen, Germany <span className="mentor-year-pill">2007</span>
+                </li>
+                <li>
+                  <strong>Master&apos;s Degree</strong> &mdash; IIT Kanpur <span className="mentor-year-pill">2004</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* EXPERIENCE */}
+            <div className="mentor-info-block">
+              <div className="mentor-block-title">
+                <i className="fas fa-briefcase"></i>
+                <span>EXPERIENCE</span>
+              </div>
+              <ul className="bullet-list" style={{ marginTop: "6px" }}>
+                <li>
+                  <strong>RINCE, Ireland</strong> &mdash; National Research Center <span className="mentor-year-pill">2008&ndash;2013</span>
+                </li>
+                <li>
+                  <strong>Tech Mahindra</strong> &mdash; CTO Office, Technical Architect <span className="mentor-year-pill">2013&ndash;2015</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* RESEARCH AREAS */}
+            <div className="mentor-info-block span-2">
+              <div className="mentor-block-title">
+                <i className="fas fa-microchip"></i>
+                <span>RESEARCH AREAS &amp; CONTRIBUTIONS</span>
+              </div>
+              <div className="mentor-tags-wrap">
+                <span className="mentor-domain-pill">Smart Transportation</span>
+                <span className="mentor-domain-pill">Intelligent Mobility Systems</span>
+                <span className="mentor-domain-pill">Connected Vehicle Technologies</span>
+                <span className="mentor-domain-pill">Related Emerging Technologies</span>
+              </div>
+            </div>
+
+            {/* PUBLICATIONS */}
+            <div className="mentor-info-block">
+              <div className="mentor-block-title">
+                <i className="fas fa-book-open"></i>
+                <span>PUBLICATIONS</span>
+              </div>
+              <div className="mentor-stat-row">
+                <span className="mentor-metric-highlight">100+</span>
+                <span className="mentor-metric-sub">PEER-REVIEWED PUBLICATIONS</span>
+              </div>
+              <div className="mentor-pub-badges">
+                <span className="pub-badge">ACM</span>
+                <span className="pub-badge">IEEE</span>
+                <span className="pub-badge">Springer</span>
+                <span className="pub-badge">Elsevier</span>
+                <span className="pub-badge">IET</span>
+              </div>
+            </div>
+
+            {/* INTELLECTUAL PROPERTY */}
+            <div className="mentor-info-block">
+              <div className="mentor-block-title">
+                <i className="fas fa-certificate"></i>
+                <span>INTELLECTUAL PROPERTY</span>
+              </div>
+              <div className="mentor-ip-grid">
+                <div className="ip-pill">
+                  <span className="ip-num">1</span>
+                  <span className="ip-label">US Patent</span>
+                </div>
+                <div className="ip-pill">
+                  <span className="ip-num">2</span>
+                  <span className="ip-label">Indian Patents</span>
+                </div>
+                <div className="ip-pill">
+                  <span className="ip-num">6</span>
+                  <span className="ip-label">Pending Patents</span>
+                </div>
+                <div className="ip-pill">
+                  <span className="ip-num">1</span>
+                  <span className="ip-label">Granted Trademark</span>
+                </div>
+              </div>
+            </div>
+
+            {/* FELLOWSHIPS */}
+            <div className="mentor-info-block span-2">
+              <div className="mentor-block-title">
+                <i className="fas fa-award"></i>
+                <span>FELLOWSHIPS</span>
+              </div>
+              <div className="mentor-fellowship-row">
+                <div className="fellowship-chip">
+                  <i className="fas fa-medal"></i>
+                  <span><strong>DAAD Fellowship</strong> &mdash; Germany (TU Dresden)</span>
+                </div>
+                <div className="fellowship-chip">
+                  <i className="fas fa-medal"></i>
+                  <span><strong>Irish Research Council Fellowship</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };
@@ -773,6 +934,7 @@ const StudentHomePage = () => {
           opacity: 0;
           transform: translateY(40px);
           transition: all 0.8s var(--ease);
+          scroll-margin-top: 110px !important;
         }
 
         .content-section.visible {
@@ -1092,6 +1254,331 @@ const StudentHomePage = () => {
           gap: 8px;
         }
 
+        /* CLUB MENTOR SECTION */
+        .mentor-hud-grid {
+          display: grid;
+          grid-template-columns: 360px 1fr;
+          gap: 36px;
+          margin-top: 36px;
+          align-items: stretch;
+        }
+
+        .mentor-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          padding: 32px;
+          position: relative;
+          overflow: hidden;
+          transition: all 0.35s var(--ease);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .mentor-card:hover {
+          border-color: var(--neon);
+          transform: translateY(-5px);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(209, 255, 0, 0.12);
+        }
+
+        .mentor-photo-card {
+          background: linear-gradient(145deg, rgba(20, 20, 20, 0.95) 0%, rgba(5, 5, 5, 0.98) 100%);
+          border-color: rgba(209, 255, 0, 0.25);
+        }
+
+        .mentor-photo-frame {
+          width: 100%;
+          height: 380px;
+          position: relative;
+          overflow: hidden;
+          background: #080808;
+          border: 1px solid var(--border);
+          margin-bottom: 20px;
+          flex-shrink: 0;
+        }
+
+        .mentor-photo-img {
+          width: 100%;
+          height: 100%;
+          max-width: 100%;
+          object-fit: cover;
+          object-position: center 15%;
+          display: block;
+          filter: grayscale(15%) contrast(1.08) brightness(0.95);
+          transition: all 0.5s ease-out;
+        }
+
+        .mentor-photo-card:hover .mentor-photo-img {
+          filter: grayscale(0%) contrast(1) brightness(1.05);
+          transform: scale(1.04);
+        }
+
+        .mentor-photo-badge {
+          position: absolute;
+          bottom: 12px;
+          left: 12px;
+          background: rgba(0, 0, 0, 0.88);
+          color: var(--neon);
+          font-family: var(--font-mono);
+          font-size: 0.65rem;
+          padding: 3px 8px;
+          border: 1px solid rgba(209, 255, 0, 0.35);
+          border-radius: 2px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          z-index: 4;
+        }
+
+        .mentor-node-badge {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          font-family: var(--font-mono);
+          font-size: 0.6rem;
+          padding: 2px 7px;
+          border-radius: 2px;
+          letter-spacing: 1px;
+          font-weight: 700;
+          z-index: 4;
+          text-transform: uppercase;
+          background: rgba(209, 255, 0, 0.15);
+          color: var(--neon);
+          border: 1px solid rgba(209, 255, 0, 0.4);
+        }
+
+        .mentor-caption-box {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .mentor-name {
+          font-family: var(--font-display);
+          font-size: 1.8rem;
+          line-height: 1.1;
+          color: #ffffff;
+          margin-bottom: 4px;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          transition: color 0.3s;
+        }
+
+        .mentor-photo-card:hover .mentor-name {
+          color: var(--neon);
+        }
+
+        .mentor-position {
+          font-family: var(--font-mono);
+          font-size: 0.82rem;
+          color: var(--neon);
+          letter-spacing: 1px;
+          font-weight: 600;
+          text-transform: uppercase;
+          margin-bottom: 2px;
+        }
+
+        .mentor-affiliation {
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          color: #aaaaaa;
+          letter-spacing: 0.8px;
+          margin-bottom: 12px;
+        }
+
+        .mentor-rg-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-family: var(--font-mono);
+          font-size: 0.72rem;
+          color: var(--neon);
+          background: rgba(209, 255, 0, 0.08);
+          border: 1px solid rgba(209, 255, 0, 0.25);
+          padding: 5px 10px;
+          border-radius: 2px;
+          width: fit-content;
+        }
+
+        .mentor-info-card {
+          background: linear-gradient(145deg, rgba(16, 16, 16, 0.95) 0%, rgba(5, 5, 5, 0.98) 100%);
+        }
+
+        .mentor-status-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 8px;
+          flex-wrap: wrap;
+        }
+
+        .mentor-header-subtitle {
+          font-family: var(--font-body);
+          font-size: 0.95rem;
+          color: var(--text-secondary);
+          line-height: 1.5;
+          margin-bottom: 24px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          padding-bottom: 16px;
+        }
+
+        .mentor-info-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 18px;
+        }
+
+        .mentor-info-block.span-2 {
+          grid-column: span 2;
+        }
+
+        .mentor-info-block {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid var(--border);
+          padding: 16px 18px;
+          border-radius: 2px;
+          transition: all 0.3s;
+        }
+
+        .mentor-info-block:hover {
+          border-color: rgba(209, 255, 0, 0.35);
+          background: rgba(209, 255, 0, 0.02);
+        }
+
+        .mentor-block-title {
+          font-family: var(--font-mono);
+          font-size: 0.72rem;
+          color: var(--neon);
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          margin-bottom: 10px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 700;
+        }
+
+        .mentor-year-pill {
+          font-family: var(--font-mono);
+          font-size: 0.65rem;
+          color: var(--neon);
+          background: rgba(209, 255, 0, 0.12);
+          padding: 1px 6px;
+          border-radius: 2px;
+          margin-left: 6px;
+          border: 1px solid rgba(209, 255, 0, 0.3);
+          font-weight: 600;
+        }
+
+        .mentor-tags-wrap {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 6px;
+        }
+
+        .mentor-domain-pill {
+          font-family: var(--font-mono);
+          font-size: 0.72rem;
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid var(--border);
+          padding: 4px 10px;
+          border-radius: 2px;
+          letter-spacing: 0.5px;
+        }
+
+        .mentor-stat-row {
+          display: flex;
+          align-items: baseline;
+          gap: 10px;
+          margin-bottom: 8px;
+        }
+
+        .mentor-metric-highlight {
+          font-family: var(--font-display);
+          font-size: 2.2rem;
+          color: var(--neon);
+          line-height: 1;
+        }
+
+        .mentor-metric-sub {
+          font-family: var(--font-mono);
+          font-size: 0.68rem;
+          color: #888888;
+          letter-spacing: 1px;
+        }
+
+        .mentor-pub-badges {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .pub-badge {
+          font-family: var(--font-mono);
+          font-size: 0.65rem;
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--border);
+          padding: 2px 7px;
+          border-radius: 2px;
+        }
+
+        .mentor-ip-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+          margin-top: 6px;
+        }
+
+        .ip-pill {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          padding: 6px 10px;
+          border-radius: 2px;
+        }
+
+        .ip-num {
+          font-family: var(--font-mono);
+          font-weight: 700;
+          color: var(--neon);
+          font-size: 0.85rem;
+        }
+
+        .ip-label {
+          font-family: var(--font-mono);
+          font-size: 0.68rem;
+          color: #cccccc;
+          letter-spacing: 0.5px;
+        }
+
+        .mentor-fellowship-row {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-top: 6px;
+        }
+
+        .fellowship-chip {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-family: var(--font-mono);
+          font-size: 0.78rem;
+          color: #cccccc;
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          padding: 8px 12px;
+          border-radius: 2px;
+        }
+
+        .fellowship-chip i {
+          color: var(--neon);
+          font-size: 0.85rem;
+        }
+
         @media (max-width: 1024px) {
           .hero-grid {
             grid-template-columns: 1fr;
@@ -1110,6 +1597,10 @@ const StudentHomePage = () => {
           .contact-hud-grid {
             grid-template-columns: 1fr;
           }
+          .mentor-hud-grid {
+            grid-template-columns: 300px 1fr;
+            gap: 24px;
+          }
         }
 
         @media (max-width: 768px) {
@@ -1121,6 +1612,20 @@ const StudentHomePage = () => {
           }
           .home-leads-grid, .home-wing-grid {
             grid-template-columns: 1fr;
+          }
+          .mentor-hud-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin-top: 24px;
+          }
+          .mentor-photo-frame {
+            height: 320px;
+          }
+          .mentor-info-grid {
+            grid-template-columns: 1fr;
+          }
+          .mentor-info-block.span-2 {
+            grid-column: span 1;
           }
         }
       `}</style>

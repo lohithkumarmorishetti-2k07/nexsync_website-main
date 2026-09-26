@@ -165,11 +165,11 @@ const ProjectsPage = () => {
       <style>{`
         .projects-page-root {
           min-height: 100vh;
-          padding-top: 100px;
+          padding-top: 110px;
         }
 
         .projects-hero-header {
-          padding: 60px 5% 40px;
+          padding: 40px 5% 40px;
           max-width: 1400px;
           margin: 0 auto;
           border-bottom: 1px solid var(--border);
@@ -315,6 +315,12 @@ const ProjectsPage = () => {
         }
 
         @media (max-width: 768px) {
+          .projects-page-root {
+            padding-top: 95px;
+          }
+          .projects-hero-header {
+            padding: 30px 5% 30px;
+          }
           .page-hero-title {
             font-size: 3rem;
           }

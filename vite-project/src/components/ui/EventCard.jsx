@@ -30,6 +30,41 @@ const formatDate = (dateString) => {
   });
 };
 
+/**
+ * Generates an SVG data URI graphic based on event category and title.
+ * Serves as an instant, zero-network-dependency offline fallback.
+ */
+const getEventFallback = (title, category) => {
+  const safeCategory = (category || "EVENT").toUpperCase();
+  const initials = (title || "EVT")
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .slice(0, 3)
+    .join("")
+    .toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240">
+    <rect width="480" height="240" fill="#080808"/>
+    <defs>
+      <linearGradient id="evtBg_${initials}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#141414"/>
+        <stop offset="100%" stop-color="#050505"/>
+      </linearGradient>
+      <pattern id="radarGrid_${initials}" width="28" height="28" patternUnits="userSpaceOnUse">
+        <circle cx="14" cy="14" r="0.75" fill="#282828"/>
+      </pattern>
+    </defs>
+    <rect width="480" height="240" fill="url(#evtBg_${initials})"/>
+    <rect width="480" height="240" fill="url(#radarGrid_${initials})" opacity="0.6"/>
+    <circle cx="240" cy="100" r="48" fill="none" stroke="#222" stroke-width="1"/>
+    <circle cx="240" cy="100" r="28" fill="#111" stroke="#d1ff00" stroke-width="1.5" stroke-opacity="0.4"/>
+    <polygon points="234,90 252,100 234,110" fill="#d1ff00" opacity="0.8"/>
+    <rect x="150" y="154" width="180" height="26" rx="2" fill="rgba(209,255,0,0.08)" stroke="#d1ff00" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="240" y="171" fill="#d1ff00" font-family="monospace" font-size="11" font-weight="bold" letter-spacing="2" text-anchor="middle">${safeCategory} // TELEMETRY</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
+
 const EventCard = ({ event, isFeatured = false, showRsvp = true }) => {
   if (!event) return null;
 
@@ -44,6 +79,7 @@ const EventCard = ({ event, isFeatured = false, showRsvp = true }) => {
   const header = event.eventHeader && event.eventHeader.trim() ? event.eventHeader.trim() : "";
   // eventType is the canonical DB field; category is a legacy/fallback alias
   const categoryLabel = event.eventType || event.category || "TECHNICAL";
+  const fallbackVisual = getEventFallback(title, categoryLabel);
 
   return (
     <div className={`cyber-event-card ${isFeatured || event.isFeatured ? "featured" : ""}`}>
@@ -66,27 +102,28 @@ const EventCard = ({ event, isFeatured = false, showRsvp = true }) => {
         </div>
       </div>
 
-      {/* COVER IMAGE WITH ROBUST SCALING */}
-      {coverImage && (
-        <div className="event-cover-wrapper">
-          <Link to={`/events/${eventId}`} className="event-cover-link">
-            <img
-              src={coverImage}
-              alt={title}
-              className="event-cover-img"
-              loading="lazy"
-              onError={(e) => {
-                const fallback = getDriveFallbackUrl(rawCover);
-                if (fallback && e.target.src !== fallback) {
-                  e.target.src = fallback;
-                } else {
-                  e.target.parentElement.style.display = "none";
-                }
-              }}
-            />
-          </Link>
-        </div>
-      )}
+      {/* COVER IMAGE WITH MEMBERCARD-PROVEN ROBUST SCALING */}
+      <div className="event-cover-wrapper">
+        <Link to={`/events/${eventId}`} className="event-cover-link">
+          <img
+            src={coverImage || fallbackVisual}
+            alt={title}
+            className="event-cover-img"
+            loading="lazy"
+            onError={(e) => {
+              const fallback = getDriveFallbackUrl(rawCover);
+              if (fallback && e.target.src !== fallback) {
+                e.target.src = fallback;
+              } else {
+                e.target.onerror = null;
+                e.target.src = fallbackVisual;
+              }
+            }}
+          />
+          <div className="visual-scanline"></div>
+          <div className="visual-gradient-vignette"></div>
+        </Link>
+      </div>
 
       {/* CARD BODY */}
       <div className="event-card-body">
@@ -293,6 +330,30 @@ const EventCard = ({ event, isFeatured = false, showRsvp = true }) => {
         .cyber-event-card:hover .event-cover-img {
           transform: scale(1.05);
           opacity: 1;
+        }
+
+        .visual-scanline {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.4) 51%);
+          background-size: 100% 4px;
+          pointer-events: none;
+          z-index: 2;
+          opacity: 0.25;
+        }
+
+        .visual-gradient-vignette {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 50px;
+          background: linear-gradient(to top, rgba(5, 5, 5, 0.8) 0%, rgba(5, 5, 5, 0) 100%);
+          pointer-events: none;
+          z-index: 3;
         }
 
         .event-card-body {

@@ -383,8 +383,14 @@ const EventDetailPage = () => {
         .event-detail-page {
           max-width: 1240px;
           margin: 0 auto;
-          padding: 32px 24px 80px;
+          padding: 110px 24px 80px;
           color: #ffffff;
+        }
+
+        @media (max-width: 768px) {
+          .event-detail-page {
+            padding: 95px 16px 60px;
+          }
         }
 
         .detail-nav-crumb {
@@ -510,9 +516,9 @@ const EventDetailPage = () => {
 
         .detail-cover-wrapper {
           width: 100%;
-          max-height: 480px;
+          height: clamp(260px, 45vw, 460px);
           overflow: hidden;
-          background: #000000;
+          background: #080808;
           border: 1px solid var(--border);
           margin-bottom: 36px;
           position: relative;
@@ -521,7 +527,9 @@ const EventDetailPage = () => {
         .detail-cover-img {
           width: 100%;
           height: 100%;
+          max-width: 100%;
           object-fit: cover;
+          object-position: center;
           display: block;
         }
 

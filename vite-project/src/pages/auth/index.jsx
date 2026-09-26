@@ -1,7 +1,7 @@
 import CommonForm from "@/components/common-form";
 import { signInFormControls } from "@/config";
 import { useContext, useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/auth-context";
 import { canViewAdmin } from "@/utils/rbac";
 
@@ -110,8 +110,19 @@ function AuthPage() {
   return (
     <div
       ref={containerRef}
-      className="relative flex min-h-screen w-full items-center justify-center bg-[#020202] text-white font-mono overflow-hidden selection:bg-[#ccff00] selection:text-black group/page"
+      className="relative flex min-h-screen w-full items-center justify-center bg-[#020202] text-white font-mono overflow-y-auto selection:bg-[#ccff00] selection:text-black group/page py-16 px-4 sm:px-6"
+      style={{ paddingTop: "100px", paddingBottom: "60px", boxSizing: "border-box" }}
     >
+      {/* --- TOP BRAND LOGO --- */}
+      <div className="absolute top-6 left-6 z-20">
+        <Link
+          to="/"
+          className="text-2xl font-bold tracking-wider text-white hover:text-[#ccff00] transition-colors"
+          style={{ fontFamily: "var(--font-display, Teko, sans-serif)", textDecoration: "none" }}
+        >
+          NEX<span style={{ color: "var(--neon, #ccff00)" }}>SYNC</span>
+        </Link>
+      </div>
       {/* --- CSS INJECTION --- */}
       <style>{`
         @keyframes glitch {
