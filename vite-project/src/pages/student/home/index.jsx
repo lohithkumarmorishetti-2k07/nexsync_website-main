@@ -261,162 +261,73 @@ const About = () => {
         </div>
       </div>
 
-      {/* MENTOR SECTION (DIRECT CONTINUATION OF ABOUT SECTION ACCORDING TO REFERENCE SKETCH) */}
-      <div className="mentor-hud-grid">
-        {/* LEFT COLUMN: MENTOR PHOTOGRAPH */}
-        <div className="mentor-card mentor-photo-card hover-lift">
-          <div className="scan-line"></div>
-          <div className="mentor-photo-frame">
-            <img
-              src="/mentor.jpg"
-              alt="Dr. Hrishikesh Venkataraman"
-              className="mentor-photo-img"
-              loading="lazy"
-            />
-            <div className="visual-scanline"></div>
-            <div className="visual-gradient-vignette"></div>
-            <span className="mentor-photo-badge">CLUB MENTOR</span>
-            <span className="mentor-node-badge">IIIT SRI CITY</span>
-          </div>
+      {/* CLUB MENTOR SECTION - SINGLE MEDIUM-SIZED BOX AS PRESCRIBED IN SKETCH & INSTRUCTIONS */}
+      <div className="mentor-showcase-card hover-lift">
+        <div className="scan-line"></div>
+        <div className="mentor-layout-row">
+          {/* PHOTO ON LEFT */}
+          <div className="mentor-photo-pane">
+            <div className="mentor-photo-frame">
+              <img
+                src="/mentor.jpg"
+                alt="Dr. Hrishikesh Venkataraman"
+                className="mentor-photo-img"
+                loading="lazy"
+              />
+              <div className="visual-scanline"></div>
+              <div className="visual-gradient-vignette"></div>
+              <span className="mentor-photo-badge">CLUB MENTOR</span>
+              <span className="mentor-node-badge">IIIT SRI CITY</span>
+            </div>
 
-          <div className="mentor-caption-box">
-            <h3 className="mentor-name">Dr. Hrishikesh Venkataraman</h3>
-            <p className="mentor-position">Professor &amp; Dean (R&amp;D)</p>
-            <p className="mentor-affiliation">IIIT Sri City</p>
-            <div className="mentor-rg-tag">
-              <i className="fas fa-satellite-dish"></i>
-              <span>Smart Transportation Research Group</span>
+            <div className="mentor-photo-caption">
+              <h3 className="mentor-caption-name">Dr. Hrishikesh Venkataraman</h3>
+              <p className="mentor-caption-title">Professor &amp; Dean (R&amp;D)</p>
+              <p className="mentor-caption-affil">IIIT Sri City</p>
+              <div className="mentor-rg-tag">
+                <i className="fas fa-satellite-dish"></i>
+                <span>Smart Transportation RG</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* RIGHT COLUMN: MENTOR INFORMATION */}
-        <div className="mentor-card mentor-info-card hover-lift">
-          <div className="mentor-card-header">
-            <div className="mentor-status-row">
-              <span className="card-badge" style={{ color: "var(--neon)", borderColor: "var(--neon)", marginBottom: 0 }}>
-                FACULTY MENTORSHIP &amp; R&amp;D DIRECTIVE
-              </span>
-              <div className="event-status" style={{ marginBottom: 0 }}>
-                <span className="blink-dot"></span> ADVISORY NODE
-              </div>
-            </div>
-            <h3 className="glitch-text-sm" style={{ marginTop: "14px", marginBottom: "6px" }}>
-              DR. HRISHIKESH VENKATARAMAN
-            </h3>
-            <p className="mentor-header-subtitle">
-              Professor &amp; Dean (R&amp;D), IIIT Sri City &bull; Leads the Smart Transportation Research Group
-            </p>
-          </div>
-
-          <div className="mentor-info-grid">
-            {/* EDUCATION */}
-            <div className="mentor-info-block">
-              <div className="mentor-block-title">
-                <i className="fas fa-graduation-cap"></i>
-                <span>EDUCATION</span>
-              </div>
-              <ul className="bullet-list" style={{ marginTop: "6px" }}>
-                <li>
-                  <strong>PhD</strong> &mdash; Jacobs University Bremen, Germany <span className="mentor-year-pill">2007</span>
-                </li>
-                <li>
-                  <strong>Master&apos;s Degree</strong> &mdash; IIT Kanpur <span className="mentor-year-pill">2004</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* EXPERIENCE */}
-            <div className="mentor-info-block">
-              <div className="mentor-block-title">
-                <i className="fas fa-briefcase"></i>
-                <span>EXPERIENCE</span>
-              </div>
-              <ul className="bullet-list" style={{ marginTop: "6px" }}>
-                <li>
-                  <strong>RINCE, Ireland</strong> &mdash; National Research Center <span className="mentor-year-pill">2008&ndash;2013</span>
-                </li>
-                <li>
-                  <strong>Tech Mahindra</strong> &mdash; CTO Office, Technical Architect <span className="mentor-year-pill">2013&ndash;2015</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* RESEARCH AREAS */}
-            <div className="mentor-info-block span-2">
-              <div className="mentor-block-title">
-                <i className="fas fa-microchip"></i>
-                <span>RESEARCH AREAS &amp; CONTRIBUTIONS</span>
-              </div>
-              <div className="mentor-tags-wrap">
-                <span className="mentor-domain-pill">Smart Transportation</span>
-                <span className="mentor-domain-pill">Intelligent Mobility Systems</span>
-                <span className="mentor-domain-pill">Connected Vehicle Technologies</span>
-                <span className="mentor-domain-pill">Related Emerging Technologies</span>
-              </div>
-            </div>
-
-            {/* PUBLICATIONS */}
-            <div className="mentor-info-block">
-              <div className="mentor-block-title">
-                <i className="fas fa-book-open"></i>
-                <span>PUBLICATIONS</span>
-              </div>
-              <div className="mentor-stat-row">
-                <span className="mentor-metric-highlight">100+</span>
-                <span className="mentor-metric-sub">PEER-REVIEWED PUBLICATIONS</span>
-              </div>
-              <div className="mentor-pub-badges">
-                <span className="pub-badge">ACM</span>
-                <span className="pub-badge">IEEE</span>
-                <span className="pub-badge">Springer</span>
-                <span className="pub-badge">Elsevier</span>
-                <span className="pub-badge">IET</span>
-              </div>
-            </div>
-
-            {/* INTELLECTUAL PROPERTY */}
-            <div className="mentor-info-block">
-              <div className="mentor-block-title">
-                <i className="fas fa-certificate"></i>
-                <span>INTELLECTUAL PROPERTY</span>
-              </div>
-              <div className="mentor-ip-grid">
-                <div className="ip-pill">
-                  <span className="ip-num">1</span>
-                  <span className="ip-label">US Patent</span>
-                </div>
-                <div className="ip-pill">
-                  <span className="ip-num">2</span>
-                  <span className="ip-label">Indian Patents</span>
-                </div>
-                <div className="ip-pill">
-                  <span className="ip-num">6</span>
-                  <span className="ip-label">Pending Patents</span>
-                </div>
-                <div className="ip-pill">
-                  <span className="ip-num">1</span>
-                  <span className="ip-label">Granted Trademark</span>
+          {/* DESCRIPTIVE NARRATIVE CONTENT ON RIGHT */}
+          <div className="mentor-content-pane">
+            <div className="mentor-content-header">
+              <div className="mentor-status-row">
+                <span className="card-badge" style={{ color: "var(--neon)", borderColor: "var(--neon)", marginBottom: 0 }}>
+                  FACULTY MENTORSHIP &amp; R&amp;D DIRECTIVE
+                </span>
+                <div className="event-status" style={{ marginBottom: 0 }}>
+                  <span className="blink-dot"></span> ADVISORY NODE
                 </div>
               </div>
+              <h3 className="glitch-text-sm" style={{ marginTop: "12px", marginBottom: "4px" }}>
+                DR. HRISHIKESH VENKATARAMAN
+              </h3>
+              <p className="mentor-header-subtitle">
+                Professor &amp; Dean (R&amp;D), IIIT Sri City &bull; Lead, Smart Transportation Research Group
+              </p>
             </div>
 
-            {/* FELLOWSHIPS */}
-            <div className="mentor-info-block span-2">
-              <div className="mentor-block-title">
-                <i className="fas fa-award"></i>
-                <span>FELLOWSHIPS</span>
-              </div>
-              <div className="mentor-fellowship-row">
-                <div className="fellowship-chip">
-                  <i className="fas fa-medal"></i>
-                  <span><strong>DAAD Fellowship</strong> &mdash; Germany (TU Dresden)</span>
-                </div>
-                <div className="fellowship-chip">
-                  <i className="fas fa-medal"></i>
-                  <span><strong>Irish Research Council Fellowship</strong></span>
-                </div>
-              </div>
+            <div className="mentor-paragraphs">
+              <p className="mentor-narrative-p">
+                <strong>Dr. Hrishikesh Venkataraman</strong> serves as Professor and Dean of Research &amp; Development at IIIT Sri City, where he heads the Smart Transportation Research Group. He obtained his Ph.D. in Wireless Communications from <strong>Jacobs University Bremen, Germany (2007)</strong> and earned his Master&apos;s degree from <strong>IIT Kanpur (2004)</strong>. His academic tenure includes prestigious international honors including the <strong>DAAD Fellowship</strong> at TU Dresden, Germany, and the <strong>Irish Research Council Fellowship</strong>.
+              </p>
+              <p className="mentor-narrative-p">
+                Bringing extensive high-impact research and industry experience, Dr. Venkataraman previously served as Senior Researcher at <strong>RINCE National Research Center in Ireland (2008&ndash;2013)</strong> and as Technical Architect in the <strong>CTO Office at Tech Mahindra (2013&ndash;2015)</strong>. His research drives core advancements across Connected and Autonomous Vehicles (CAV), intelligent mobility infrastructure, vehicular networks, and smart city telemetry systems.
+              </p>
+              <p className="mentor-narrative-p">
+                A prolific researcher, Dr. Venkataraman has authored <strong>over 100 peer-reviewed scientific publications</strong> across ACM, IEEE, Springer, Elsevier, and IET. His intellectual property achievements encompass <strong>9 IP assets</strong>, including 1 US Patent, 2 Indian Patents, 6 pending patents, and a registered trademark. As the core faculty mentor for NexSync, he directly guides student-led robotics testbeds, autonomous navigation algorithms, and national autonomous driving challenges.
+              </p>
+            </div>
+
+            {/* KEY HIGHLIGHTS / CHIPS */}
+            <div className="mentor-chips-row">
+              <span className="mentor-meta-chip"><i className="fas fa-book-open"></i> 100+ Publications (IEEE / ACM / Springer)</span>
+              <span className="mentor-meta-chip"><i className="fas fa-certificate"></i> 9 Patents &amp; IP (1 US, 2 IN, 6 Pending)</span>
+              <span className="mentor-meta-chip"><i className="fas fa-satellite-dish"></i> Smart Transportation RG Lead</span>
+              <span className="mentor-meta-chip"><i className="fas fa-award"></i> DAAD &amp; IRC Fellow</span>
             </div>
           </div>
         </div>
@@ -1254,72 +1165,70 @@ const StudentHomePage = () => {
           gap: 8px;
         }
 
-        /* CLUB MENTOR SECTION */
-        .mentor-hud-grid {
-          display: grid;
-          grid-template-columns: 360px 1fr;
-          gap: 36px;
-          margin-top: 36px;
-          align-items: stretch;
-        }
-
-        .mentor-card {
-          background: var(--surface);
+        /* CLUB MENTOR MEDIUM-SIZED BOX SHOWCASE */
+        .mentor-showcase-card {
+          background: linear-gradient(145deg, rgba(16, 16, 16, 0.95) 0%, rgba(6, 6, 6, 0.98) 100%);
           border: 1px solid var(--border);
-          padding: 32px;
+          padding: 28px;
+          margin-top: 32px;
           position: relative;
           overflow: hidden;
           transition: all 0.35s var(--ease);
+        }
+
+        .mentor-showcase-card:hover {
+          border-color: var(--neon);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(209, 255, 0, 0.12);
+        }
+
+        .mentor-layout-row {
+          display: flex;
+          gap: 32px;
+          align-items: stretch;
+        }
+
+        .mentor-photo-pane {
+          width: 250px;
+          flex-shrink: 0;
           display: flex;
           flex-direction: column;
         }
 
-        .mentor-card:hover {
-          border-color: var(--neon);
-          transform: translateY(-5px);
-          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(209, 255, 0, 0.12);
-        }
-
-        .mentor-photo-card {
-          background: linear-gradient(145deg, rgba(20, 20, 20, 0.95) 0%, rgba(5, 5, 5, 0.98) 100%);
-          border-color: rgba(209, 255, 0, 0.25);
-        }
-
         .mentor-photo-frame {
           width: 100%;
-          height: 380px;
+          height: 250px;
           position: relative;
           overflow: hidden;
           background: #080808;
           border: 1px solid var(--border);
-          margin-bottom: 20px;
+          border-radius: 2px;
+          margin-bottom: 14px;
           flex-shrink: 0;
         }
 
         .mentor-photo-img {
           width: 100%;
           height: 100%;
-          max-width: 100%;
           object-fit: cover;
           object-position: center 15%;
           display: block;
-          filter: grayscale(15%) contrast(1.08) brightness(0.95);
-          transition: all 0.5s ease-out;
+          filter: grayscale(10%) contrast(1.06) brightness(0.96);
+          transition: all 0.4s ease-out;
         }
 
-        .mentor-photo-card:hover .mentor-photo-img {
-          filter: grayscale(0%) contrast(1) brightness(1.05);
-          transform: scale(1.04);
+        .mentor-showcase-card:hover .mentor-photo-img {
+          filter: grayscale(0%) contrast(1) brightness(1.04);
+          transform: scale(1.03);
         }
 
         .mentor-photo-badge {
           position: absolute;
-          bottom: 12px;
-          left: 12px;
+          bottom: 10px;
+          left: 10px;
           background: rgba(0, 0, 0, 0.88);
           color: var(--neon);
           font-family: var(--font-mono);
-          font-size: 0.65rem;
+          font-size: 0.62rem;
           padding: 3px 8px;
           border: 1px solid rgba(209, 255, 0, 0.35);
           border-radius: 2px;
@@ -1330,11 +1239,11 @@ const StudentHomePage = () => {
 
         .mentor-node-badge {
           position: absolute;
-          top: 12px;
-          right: 12px;
+          top: 10px;
+          right: 10px;
           font-family: var(--font-mono);
-          font-size: 0.6rem;
-          padding: 2px 7px;
+          font-size: 0.58rem;
+          padding: 2px 6px;
           border-radius: 2px;
           letter-spacing: 1px;
           font-weight: 700;
@@ -1345,29 +1254,29 @@ const StudentHomePage = () => {
           border: 1px solid rgba(209, 255, 0, 0.4);
         }
 
-        .mentor-caption-box {
+        .mentor-photo-caption {
           display: flex;
           flex-direction: column;
         }
 
-        .mentor-name {
+        .mentor-caption-name {
           font-family: var(--font-display);
-          font-size: 1.8rem;
-          line-height: 1.1;
+          font-size: 1.35rem;
+          line-height: 1.15;
           color: #ffffff;
-          margin-bottom: 4px;
+          margin-bottom: 3px;
           letter-spacing: 0.5px;
           text-transform: uppercase;
           transition: color 0.3s;
         }
 
-        .mentor-photo-card:hover .mentor-name {
+        .mentor-showcase-card:hover .mentor-caption-name {
           color: var(--neon);
         }
 
-        .mentor-position {
+        .mentor-caption-title {
           font-family: var(--font-mono);
-          font-size: 0.82rem;
+          font-size: 0.78rem;
           color: var(--neon);
           letter-spacing: 1px;
           font-weight: 600;
@@ -1375,30 +1284,39 @@ const StudentHomePage = () => {
           margin-bottom: 2px;
         }
 
-        .mentor-affiliation {
+        .mentor-caption-affil {
           font-family: var(--font-mono);
-          font-size: 0.75rem;
+          font-size: 0.72rem;
           color: #aaaaaa;
           letter-spacing: 0.8px;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
 
         .mentor-rg-tag {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
           font-family: var(--font-mono);
-          font-size: 0.72rem;
+          font-size: 0.68rem;
           color: var(--neon);
           background: rgba(209, 255, 0, 0.08);
           border: 1px solid rgba(209, 255, 0, 0.25);
-          padding: 5px 10px;
+          padding: 4px 8px;
           border-radius: 2px;
           width: fit-content;
         }
 
-        .mentor-info-card {
-          background: linear-gradient(145deg, rgba(16, 16, 16, 0.95) 0%, rgba(5, 5, 5, 0.98) 100%);
+        .mentor-content-pane {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .mentor-content-header {
+          margin-bottom: 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          padding-bottom: 12px;
         }
 
         .mentor-status-row {
@@ -1406,177 +1324,70 @@ const StudentHomePage = () => {
           justify-content: space-between;
           align-items: center;
           gap: 12px;
-          margin-bottom: 8px;
           flex-wrap: wrap;
         }
 
         .mentor-header-subtitle {
-          font-family: var(--font-body);
-          font-size: 0.95rem;
+          font-family: var(--font-mono);
+          font-size: 0.8rem;
           color: var(--text-secondary);
-          line-height: 1.5;
-          margin-bottom: 24px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          padding-bottom: 16px;
-        }
-
-        .mentor-info-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 18px;
-        }
-
-        .mentor-info-block.span-2 {
-          grid-column: span 2;
-        }
-
-        .mentor-info-block {
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid var(--border);
-          padding: 16px 18px;
-          border-radius: 2px;
-          transition: all 0.3s;
-        }
-
-        .mentor-info-block:hover {
-          border-color: rgba(209, 255, 0, 0.35);
-          background: rgba(209, 255, 0, 0.02);
-        }
-
-        .mentor-block-title {
-          font-family: var(--font-mono);
-          font-size: 0.72rem;
-          color: var(--neon);
-          letter-spacing: 1.5px;
-          text-transform: uppercase;
-          margin-bottom: 10px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-weight: 700;
-        }
-
-        .mentor-year-pill {
-          font-family: var(--font-mono);
-          font-size: 0.65rem;
-          color: var(--neon);
-          background: rgba(209, 255, 0, 0.12);
-          padding: 1px 6px;
-          border-radius: 2px;
-          margin-left: 6px;
-          border: 1px solid rgba(209, 255, 0, 0.3);
-          font-weight: 600;
-        }
-
-        .mentor-tags-wrap {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-top: 6px;
-        }
-
-        .mentor-domain-pill {
-          font-family: var(--font-mono);
-          font-size: 0.72rem;
-          color: #ffffff;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid var(--border);
-          padding: 4px 10px;
-          border-radius: 2px;
           letter-spacing: 0.5px;
+          margin-top: 4px;
         }
 
-        .mentor-stat-row {
-          display: flex;
-          align-items: baseline;
-          gap: 10px;
-          margin-bottom: 8px;
-        }
-
-        .mentor-metric-highlight {
-          font-family: var(--font-display);
-          font-size: 2.2rem;
-          color: var(--neon);
-          line-height: 1;
-        }
-
-        .mentor-metric-sub {
-          font-family: var(--font-mono);
-          font-size: 0.68rem;
-          color: #888888;
-          letter-spacing: 1px;
-        }
-
-        .mentor-pub-badges {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
-        .pub-badge {
-          font-family: var(--font-mono);
-          font-size: 0.65rem;
-          color: #ffffff;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid var(--border);
-          padding: 2px 7px;
-          border-radius: 2px;
-        }
-
-        .mentor-ip-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 8px;
-          margin-top: 6px;
-        }
-
-        .ip-pill {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(0, 0, 0, 0.4);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          padding: 6px 10px;
-          border-radius: 2px;
-        }
-
-        .ip-num {
-          font-family: var(--font-mono);
-          font-weight: 700;
-          color: var(--neon);
-          font-size: 0.85rem;
-        }
-
-        .ip-label {
-          font-family: var(--font-mono);
-          font-size: 0.68rem;
-          color: #cccccc;
-          letter-spacing: 0.5px;
-        }
-
-        .mentor-fellowship-row {
+        .mentor-paragraphs {
           display: flex;
           flex-direction: column;
-          gap: 8px;
-          margin-top: 6px;
+          gap: 12px;
+          flex: 1;
         }
 
-        .fellowship-chip {
+        .mentor-narrative-p {
+          font-family: var(--font-body);
+          font-size: 0.88rem;
+          line-height: 1.65;
+          color: #d1d5db;
+          margin: 0;
+          letter-spacing: 0.2px;
+        }
+
+        .mentor-narrative-p strong {
+          color: #ffffff;
+        }
+
+        .mentor-chips-row {
           display: flex;
-          align-items: center;
-          gap: 10px;
-          font-family: var(--font-mono);
-          font-size: 0.78rem;
-          color: #cccccc;
-          background: rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          padding: 8px 12px;
-          border-radius: 2px;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        .fellowship-chip i {
+        .mentor-meta-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          font-family: var(--font-mono);
+          font-size: 0.72rem;
+          color: #d4d4d8;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid var(--border);
+          padding: 5px 10px;
+          border-radius: 2px;
+          letter-spacing: 0.5px;
+          transition: all 0.25s ease;
+        }
+
+        .mentor-meta-chip i {
           color: var(--neon);
-          font-size: 0.85rem;
+          font-size: 0.75rem;
+        }
+
+        .mentor-meta-chip:hover {
+          border-color: rgba(209, 255, 0, 0.35);
+          background: rgba(209, 255, 0, 0.05);
+          color: #ffffff;
         }
 
         @media (max-width: 1024px) {
@@ -1597,9 +1408,23 @@ const StudentHomePage = () => {
           .contact-hud-grid {
             grid-template-columns: 1fr;
           }
-          .mentor-hud-grid {
-            grid-template-columns: 300px 1fr;
-            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+          .mentor-layout-row {
+            flex-direction: column;
+            gap: 20px;
+          }
+          .mentor-photo-pane {
+            width: 100%;
+            flex-direction: row;
+            gap: 20px;
+            align-items: center;
+          }
+          .mentor-photo-frame {
+            width: 180px;
+            height: 190px;
+            margin-bottom: 0;
           }
         }
 
@@ -1613,19 +1438,20 @@ const StudentHomePage = () => {
           .home-leads-grid, .home-wing-grid {
             grid-template-columns: 1fr;
           }
-          .mentor-hud-grid {
-            grid-template-columns: 1fr;
-            gap: 24px;
-            margin-top: 24px;
+        }
+
+        @media (max-width: 600px) {
+          .mentor-photo-pane {
+            flex-direction: column;
+            align-items: flex-start;
           }
           .mentor-photo-frame {
-            height: 320px;
+            width: 100%;
+            height: 240px;
+            margin-bottom: 12px;
           }
-          .mentor-info-grid {
-            grid-template-columns: 1fr;
-          }
-          .mentor-info-block.span-2 {
-            grid-column: span 1;
+          .mentor-showcase-card {
+            padding: 20px;
           }
         }
       `}</style>

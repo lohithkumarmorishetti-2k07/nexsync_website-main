@@ -2,41 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { formatImageUrl, getDriveFallbackUrl } from "@/utils/imageUrl";
 
-/**
- * Generates an SVG data URI avatar based on project title and code.
- * Serves as an instant, zero-network-dependency offline fallback.
- */
-const getProjectFallback = (title, code) => {
-  const safeCode = (code || "NEX-PRJ").toUpperCase();
-  const initials = (title || "PRJ")
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0])
-    .slice(0, 3)
-    .join("")
-    .toUpperCase();
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240">
-    <rect width="480" height="240" fill="#080808"/>
-    <defs>
-      <linearGradient id="projBg_${initials}" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#141414"/>
-        <stop offset="100%" stop-color="#050505"/>
-      </linearGradient>
-      <pattern id="projGrid_${initials}" width="24" height="24" patternUnits="userSpaceOnUse">
-        <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#202020" stroke-width="0.5"/>
-      </pattern>
-    </defs>
-    <rect width="480" height="240" fill="url(#projBg_${initials})"/>
-    <rect width="480" height="240" fill="url(#projGrid_${initials})" opacity="0.6"/>
-    <rect x="24" y="24" width="432" height="192" fill="none" stroke="#262626" stroke-width="1" stroke-dasharray="4 4"/>
-    <circle cx="240" cy="100" r="38" fill="#101010" stroke="#d1ff00" stroke-width="1.5" stroke-opacity="0.4"/>
-    <path d="M224 100 L256 100 M240 84 L240 116" stroke="#d1ff00" stroke-width="1.5" stroke-opacity="0.8"/>
-    <rect x="170" y="152" width="140" height="26" rx="2" fill="rgba(209, 255, 0, 0.08)" stroke="#d1ff00" stroke-width="1" stroke-opacity="0.4"/>
-    <text x="240" y="169" fill="#d1ff00" font-family="monospace" font-size="11" font-weight="bold" letter-spacing="2" text-anchor="middle">${safeCode}</text>
-  </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-};
-
 const ProjectCard = ({ project }) => {
   if (!project) return null;
 
@@ -45,7 +10,6 @@ const ProjectCard = ({ project }) => {
   const coverImage = formatImageUrl(rawCover);
   const title = project.projectName || "UNTITLED PROJECT";
   const header = project.projectHeader && project.projectHeader.trim() ? project.projectHeader.trim() : "";
-  const fallbackVisual = getProjectFallback(title, project.projectCode || "NEX-PRJ");
 
   const getStatusClass = (status) => {
     switch (status?.toUpperCase()) {
@@ -76,28 +40,35 @@ const ProjectCard = ({ project }) => {
         </span>
       </div>
 
-      {/* THUMBNAIL WITH IMAGE SCALING STRATEGY REUSED FROM MEMBERCARD */}
-      <div className="project-thumbnail-wrapper">
-        <Link to={`/projects/${projId}`} className="project-thumb-link">
-          <img
-            src={coverImage || fallbackVisual}
-            alt={title}
-            className="project-thumb-img"
-            loading="lazy"
-            onError={(e) => {
-              const fallback = getDriveFallbackUrl(rawCover);
-              if (fallback && e.target.src !== fallback) {
-                e.target.src = fallback;
-              } else {
-                e.target.onerror = null;
-                e.target.src = fallbackVisual;
-              }
-            }}
-          />
-          <div className="visual-scanline"></div>
-          <div className="visual-gradient-vignette"></div>
-        </Link>
-      </div>
+      {/* THUMBNAIL CONTAINER - ONLY RENDERED WHEN COVER IMAGE EXISTS */}
+      {coverImage && (
+        <div className="project-thumbnail-wrapper">
+          <Link to={`/projects/${projId}`} className="project-thumb-link">
+            <div
+              className="project-thumb-backdrop"
+              style={{ backgroundImage: `url(${coverImage})` }}
+            />
+            <img
+              src={coverImage}
+              alt={title}
+              className="project-thumb-img"
+              loading="lazy"
+              onError={(e) => {
+                const fallback = getDriveFallbackUrl(rawCover);
+                if (fallback && e.target.src !== fallback) {
+                  e.target.src = fallback;
+                  const backdrop = e.target.previousElementSibling;
+                  if (backdrop) backdrop.style.backgroundImage = `url(${fallback})`;
+                } else {
+                  const wrap = e.target.closest('.project-thumbnail-wrapper');
+                  if (wrap) wrap.style.display = "none";
+                }
+              }}
+            />
+            <div className="visual-scanline"></div>
+          </Link>
+        </div>
+      )}
 
       {/* PROJECT TITLE */}
       {projId ? (
@@ -221,62 +192,58 @@ const ProjectCard = ({ project }) => {
           background: currentColor;
         }
 
-        /* IMAGE SCALING STRATEGY REUSED FROM MEMBERCARD */
+        /* PROJECT THUMBNAIL SCALING & AMBIENT BACKDROP */
         .project-thumbnail-wrapper {
           width: 100%;
-          height: 180px;
+          height: 160px;
           overflow: hidden;
           margin-bottom: 16px;
-          background: #000;
+          background: #080808;
           border: 1px solid var(--border);
           position: relative;
           flex-shrink: 0;
+          border-radius: 2px;
         }
 
         .project-thumb-link {
-          display: block;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           width: 100%;
           height: 100%;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .project-thumb-backdrop {
+          position: absolute;
+          top: -12px;
+          left: -12px;
+          right: -12px;
+          bottom: -12px;
+          background-size: cover;
+          background-position: center;
+          filter: blur(14px) brightness(0.25);
+          transform: scale(1.1);
+          pointer-events: none;
+          z-index: 1;
         }
 
         .project-thumb-img {
+          position: relative;
+          z-index: 2;
           width: 100%;
           height: 100%;
           max-width: 100%;
-          object-fit: cover;
+          max-height: 100%;
+          object-fit: contain;
           object-position: center;
           display: block;
-          opacity: 0.85;
-          transition: transform 0.4s ease, opacity 0.4s ease;
+          transition: transform 0.4s ease;
         }
 
         .cyber-project-card:hover .project-thumb-img {
-          transform: scale(1.05);
-          opacity: 1;
-        }
-
-        .visual-scanline {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.4) 51%);
-          background-size: 100% 4px;
-          pointer-events: none;
-          z-index: 2;
-          opacity: 0.25;
-        }
-
-        .visual-gradient-vignette {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 50px;
-          background: linear-gradient(to top, rgba(5, 5, 5, 0.8) 0%, rgba(5, 5, 5, 0) 100%);
-          pointer-events: none;
-          z-index: 3;
+          transform: scale(1.04);
         }
 
         .project-title-link {
