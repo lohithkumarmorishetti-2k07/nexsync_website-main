@@ -36,7 +36,7 @@ const EventCard = ({ event, isFeatured = false, showRsvp = true }) => {
   const rawCover = event.coverImage || event.image;
   const coverImage = formatImageUrl(rawCover);
   const eventId = event._id || event.id;
-  const rsvp = event.registrationLink || event.rsvpUrl || event.link || "";
+  const rsvp = event.rsvpLink || event.redirectUrl || event.registrationLink || event.rsvpUrl || event.link || "";
   const hasValidRsvp = isValidUrl(rsvp);
   const isInternal = hasValidRsvp && rsvp.trim().startsWith("/");
   const status = event.status || "Upcoming";
