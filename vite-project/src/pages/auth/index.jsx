@@ -87,12 +87,25 @@ function AuthPage() {
     );
   }
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   function checkIfSignInFormIsValid() {
     return (
       signInFormData &&
       signInFormData.userEmail !== "" &&
       signInFormData.password !== ""
     );
+  }
+
+  async function handleFormSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (isSubmitting || !checkIfSignInFormIsValid()) return;
+    try {
+      setIsSubmitting(true);
+      await handleLoginUser(e);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -306,9 +319,9 @@ function AuthPage() {
                 formControls={signInFormControls}
                 formData={signInFormData}
                 setFormData={setSignInFormData}
-                handleSubmit={handleLoginUser}
-                buttonText="Initiate Link"
-                isButtonDisabled={!checkIfSignInFormIsValid()}
+                handleSubmit={handleFormSubmit}
+                buttonText={isSubmitting ? "Authenticating..." : "Initiate Link"}
+                isButtonDisabled={!checkIfSignInFormIsValid() || isSubmitting}
               />
             </div>
 

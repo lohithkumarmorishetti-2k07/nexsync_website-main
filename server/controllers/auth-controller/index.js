@@ -35,6 +35,13 @@ const loginUser = async (req, res) => {
       });
     }
 
+    if (member.isAlumni) {
+      return res.status(403).json({
+        success: false,
+        message: "Alumni records do not possess dashboard login access.",
+      });
+    }
+
     if (!member.passwordHash) {
       return res.status(401).json({
         success: false,

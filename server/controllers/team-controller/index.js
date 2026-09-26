@@ -6,7 +6,6 @@ const ALLOWED_ROLES = [
   "Club Coordinator",
   "Executive Member",
   "Wing Member",
-  "Alumni",
 ];
 
 const ALLOWED_DOMAINS = [
@@ -51,15 +50,15 @@ const listTeamMembers = async (req, res) => {
         query.role = role;
       }
     } else if (memberType) {
-      query.role = memberType === "Alumni Member" ? "Alumni" : memberType;
+      query.role = memberType;
     }
 
     if (domain) query.domain = domain;
     if (isAlumni !== undefined && leadership !== "true") {
-      if (isAlumni === "true") {
-        query.role = "Alumni";
-      } else {
-        query.role = { $ne: "Alumni" };
+      if (isAlumni === "true" || isAlumni === true) {
+        query.isAlumni = true;
+      } else if (isAlumni === "false" || isAlumni === false) {
+        query.isAlumni = { $ne: true };
       }
     }
 
@@ -177,28 +176,24 @@ const createTeamMember = async (req, res) => {
       });
     }
 
-    // Determine canonical role
-    let finalRole = "";
-    if (Boolean(isAlumni) || role === "Alumni" || memberType === "Alumni Member") {
-      finalRole = "Alumni";
-    } else {
-      const candidateRole = (role || memberType || "").trim();
-      if (!candidateRole) {
-        return res.status(400).json({
-          success: false,
-          message: "Role is required for team members",
-        });
-      }
-      if (!ALLOWED_ROLES.includes(candidateRole)) {
-        return res.status(400).json({
-          success: false,
-          message: `Role must be one of: ${ALLOWED_ROLES.join(", ")}`,
-        });
-      }
-      finalRole = candidateRole;
-    }
+    // Determine isAlumni
+    const isAlumniMember = Boolean(isAlumni === true || isAlumni === "true");
 
-    const isAlumniMember = finalRole === "Alumni";
+    // Determine canonical role
+    const candidateRole = (role || memberType || "").trim();
+    if (!candidateRole) {
+      return res.status(400).json({
+        success: false,
+        message: "Role is required for team members",
+      });
+    }
+    if (!ALLOWED_ROLES.includes(candidateRole)) {
+      return res.status(400).json({
+        success: false,
+        message: `Role must be one of: ${ALLOWED_ROLES.join(", ")}`,
+      });
+    }
+    const finalRole = candidateRole;
 
     // Handle email & credentials
     let memberEmail = email ? email.toLowerCase().trim() : "";
@@ -309,18 +304,22 @@ const updateTeamMember = async (req, res) => {
 
     // Role resolution
     let targetRole = member.role;
-    if (Boolean(isAlumni) || role === "Alumni" || memberType === "Alumni Member") {
-      targetRole = "Alumni";
-    } else if (role || memberType) {
+    if (role || memberType) {
       const candidate = (role || memberType).trim();
       if (ALLOWED_ROLES.includes(candidate)) {
         targetRole = candidate;
       }
     }
 
+    // isAlumni resolution
+    let targetIsAlumni = member.isAlumni;
+    if (isAlumni !== undefined) {
+      targetIsAlumni = Boolean(isAlumni === true || isAlumni === "true");
+    }
+
     if (name !== undefined) member.name = name.trim();
     member.role = targetRole;
-    member.isAlumni = targetRole === "Alumni";
+    member.isAlumni = targetIsAlumni;
 
     if (domain !== undefined) {
       if (!ALLOWED_DOMAINS.includes(domain)) {
@@ -351,11 +350,11 @@ const updateTeamMember = async (req, res) => {
     }
 
     // If new password provided, encrypt and update
-    if (password && password.trim() && targetRole !== "Alumni") {
-      member.passwordHash = await bcrypt.hash(password.trim(), 10);
-    } else if (targetRole === "Alumni") {
+    if (targetIsAlumni) {
       member.passwordHash = null;
       member.customPermissions = [];
+    } else if (password && password.trim()) {
+      member.passwordHash = await bcrypt.hash(password.trim(), 10);
     }
 
     if (linkedinUrl !== undefined) member.linkedinUrl = linkedinUrl.trim();
@@ -407,7 +406,7 @@ const updateMemberPermissions = async (req, res) => {
       });
     }
 
-    if (member.role === "Alumni") {
+    if (member.isAlumni) {
       return res.status(400).json({
         success: false,
         message: "Alumni records do not possess active management permissions.",

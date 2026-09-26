@@ -318,7 +318,7 @@ async function runTestSuite() {
 
   // TEST 10: Alumni Model Integrity & Cleanliness
   console.log("\n[TEST 10] Testing Alumni Model integrity...");
-  const alumniRecord = await TeamMember.findOne({ role: "Alumni" });
+  const alumniRecord = await TeamMember.findOne({ isAlumni: true });
   if (alumniRecord) {
     const hasPassword = Boolean(alumniRecord.passwordHash);
     const hasPerms = alumniRecord.customPermissions && alumniRecord.customPermissions.length > 0;

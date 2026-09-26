@@ -5,7 +5,6 @@ const ROLES = {
   COORDINATOR: "Club Coordinator",
   EXECUTIVE: "Executive Member",
   WING_MEMBER: "Wing Member",
-  ALUMNI: "Alumni",
 };
 
 const PERMISSIONS = {
@@ -50,9 +49,6 @@ const DEFAULT_ROLE_PERMISSIONS = {
   [ROLES.WING_MEMBER]: [
     // Wing Members: read-only by default, 0 default management permissions
   ],
-  [ROLES.ALUMNI]: [
-    // Alumni: read-only
-  ],
 };
 
 // Coordinator-only permissions that CANNOT be granted to Executive or Wing Members
@@ -72,7 +68,7 @@ const isCoordinatorRole = (role) => {
  * Compute the effective permissions for a team member given their role and custom overrides.
  */
 const getEffectivePermissions = (member) => {
-  if (!member) return [];
+  if (!member || member.isAlumni) return [];
 
   const role = member.role || ROLES.WING_MEMBER;
 

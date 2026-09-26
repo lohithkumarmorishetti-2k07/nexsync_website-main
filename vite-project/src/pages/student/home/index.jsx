@@ -545,7 +545,7 @@ const HomeTeam = () => {
           {/* View Full Team CTA */}
           <div className="section-cta-container">
             <Link to="/team" className="btn btn-outline-neon hover-trigger">
-              <span>View Full Team / Wing Members & Alumni</span>
+              <span>View Team / Alumni</span>
               <i className="fas fa-arrow-right"></i>
             </Link>
           </div>

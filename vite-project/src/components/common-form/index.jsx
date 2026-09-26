@@ -1,9 +1,10 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import FormControls from "./form-controls";
 
 function CommonForm({
   handleSubmit = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     console.log("Form submitted - no handler provided");
   },
   buttonText,
@@ -12,8 +13,23 @@ function CommonForm({
   setFormData,
   isButtonDisabled = false,
 }) {
+  const onFormSubmit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (isButtonDisabled) return;
+    handleSubmit(e);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (!isButtonDisabled) {
+        onFormSubmit(e);
+      }
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={onFormSubmit} onKeyDown={handleKeyDown} noValidate>
       {/* render form controls here */}
       <FormControls
         formControls={formControls}

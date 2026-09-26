@@ -37,7 +37,6 @@ const TeamPage = () => {
       "Club Coordinator": 1,
       "Executive Member": 2,
       "Wing Member": 3,
-      "Alumni": 4,
     };
     return [...members].sort((a, b) => {
       const orderA = DOMAIN_DISPLAY_ORDER.indexOf(a.domain);
@@ -46,8 +45,8 @@ const TeamPage = () => {
       const rankB = orderB === -1 ? 999 : orderB;
       if (rankA !== rankB) return rankA - rankB;
 
-      const roleA = rolePriority[a.role] || rolePriority[a.memberType] || 99;
-      const roleB = rolePriority[b.role] || rolePriority[b.memberType] || 99;
+      const roleA = rolePriority[a.role] || 99;
+      const roleB = rolePriority[b.role] || 99;
       if (roleA !== roleB) return roleA - roleB;
 
       return (a.name || "").localeCompare(b.name || "");
@@ -55,8 +54,8 @@ const TeamPage = () => {
   };
 
   // 1. Separate Active (Present) Members and Alumni
-  const activeMembers = teamMembers.filter((m) => (m.role !== "Alumni" && !m.isAlumni) && !m.isArchived);
-  const alumniMembers = teamMembers.filter((m) => (m.role === "Alumni" || m.isAlumni) && !m.isArchived);
+  const activeMembers = teamMembers.filter((m) => !m.isAlumni && !m.isArchived);
+  const alumniMembers = teamMembers.filter((m) => m.isAlumni && !m.isArchived);
 
   // 2. Active grouping by domain (preserving DOMAIN_DISPLAY_ORDER)
   const activeByDomain = DOMAIN_DISPLAY_ORDER.map((domain) => {

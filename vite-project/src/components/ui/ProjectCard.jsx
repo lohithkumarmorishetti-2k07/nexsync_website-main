@@ -8,17 +8,45 @@ const ProjectCard = ({ project }) => {
   const projId = project._id || project.projectId || project.id;
   const rawCover = project.coverImage || project.thumbnail;
   const coverImage = formatImageUrl(rawCover);
-  const headerText = (project.projectHeader && project.projectHeader.trim()) || project.projectName || "UNTITLED PROJECT";
+  const title = project.projectName || "UNTITLED PROJECT";
+  const header = project.projectHeader && project.projectHeader.trim() ? project.projectHeader.trim() : "";
+
+  const getStatusClass = (status) => {
+    switch (status?.toUpperCase()) {
+      case "IN PROGRESS":
+      case "WIP":
+        return "status-wip";
+      case "COMPLETED":
+        return "status-done";
+      case "PLANNING":
+        return "status-planning";
+      case "ALUMNI":
+        return "status-alumni";
+      default:
+        return "status-wip";
+    }
+  };
 
   return (
     <div className="cyber-project-card hover-lift hover-trigger">
+      {/* TOP ROW: CODE & STATUS */}
+      <div className="project-top-row">
+        <span className="project-code">{project.projectCode || "NEX-PRJ"}</span>
+        <span className={`project-status-pill ${getStatusClass(project.status)}`}>
+          <span className="status-indicator-dot"></span>
+          {project.status || "WIP"}
+        </span>
+      </div>
+
+      {/* THUMBNAIL WITH IMAGE SCALING STRATEGY */}
       {coverImage && (
         <div className="project-thumbnail-wrapper">
           <Link to={`/projects/${projId}`} className="project-thumb-link">
             <img
               src={coverImage}
-              alt={headerText}
+              alt={title}
               className="project-thumb-img"
+              loading="lazy"
               onError={(e) => {
                 const fallback = getDriveFallbackUrl(rawCover);
                 if (fallback && e.target.src !== fallback) {
@@ -32,14 +60,19 @@ const ProjectCard = ({ project }) => {
         </div>
       )}
 
+      {/* PROJECT TITLE */}
       {projId ? (
         <Link to={`/projects/${projId}`} className="project-title-link">
-          <h3 className="project-name project-header-clamped">{headerText}</h3>
+          <h3 className="project-name">{title}</h3>
         </Link>
       ) : (
-        <h3 className="project-name project-header-clamped">{headerText}</h3>
+        <h3 className="project-name">{title}</h3>
       )}
 
+      {/* PROJECT HEADER */}
+      {header && <p className="project-header-sub">{header}</p>}
+
+      {/* CARD FOOTER: VIEW DETAILS */}
       <div className="project-card-footer">
         {projId && (
           <Link
@@ -51,6 +84,7 @@ const ProjectCard = ({ project }) => {
             <i className="fas fa-arrow-right"></i>
           </Link>
         )}
+        <i className="fas fa-microchip chip-icon"></i>
       </div>
 
       <style>{`
@@ -64,6 +98,7 @@ const ProjectCard = ({ project }) => {
           overflow: hidden;
           transition: all 0.35s var(--ease);
           height: 100%;
+          box-sizing: border-box;
         }
 
         .cyber-project-card::before {
@@ -87,6 +122,67 @@ const ProjectCard = ({ project }) => {
           width: 100%;
         }
 
+        .project-top-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 14px;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .project-code {
+          font-family: var(--font-mono);
+          font-size: 0.78rem;
+          color: var(--neon);
+          letter-spacing: 1.5px;
+          font-weight: 700;
+        }
+
+        .project-status-pill {
+          font-family: var(--font-mono);
+          font-size: 0.68rem;
+          padding: 3px 8px;
+          border-radius: 2px;
+          letter-spacing: 1px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          text-transform: uppercase;
+        }
+
+        .status-wip {
+          background: rgba(209, 255, 0, 0.1);
+          color: var(--neon);
+          border: 1px solid rgba(209, 255, 0, 0.3);
+        }
+
+        .status-done {
+          background: rgba(100, 255, 100, 0.1);
+          color: #64ff64;
+          border: 1px solid rgba(100, 255, 100, 0.3);
+        }
+
+        .status-planning {
+          background: rgba(0, 220, 255, 0.1);
+          color: #00dcff;
+          border: 1px solid rgba(0, 220, 255, 0.3);
+        }
+
+        .status-alumni {
+          background: rgba(180, 120, 255, 0.1);
+          color: #c084fc;
+          border: 1px solid rgba(180, 120, 255, 0.3);
+        }
+
+        .status-indicator-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: currentColor;
+        }
+
+        /* IMAGE SCALING STRATEGY REUSED FROM MEMBERCARD */
         .project-thumbnail-wrapper {
           width: 100%;
           height: 180px;
@@ -94,6 +190,8 @@ const ProjectCard = ({ project }) => {
           margin-bottom: 16px;
           background: #000;
           border: 1px solid var(--border);
+          position: relative;
+          flex-shrink: 0;
         }
 
         .project-thumb-link {
@@ -105,9 +203,12 @@ const ProjectCard = ({ project }) => {
         .project-thumb-img {
           width: 100%;
           height: 100%;
+          max-width: 100%;
           object-fit: cover;
+          object-position: center;
+          display: block;
           opacity: 0.85;
-          transition: transform 0.4s;
+          transition: transform 0.4s ease, opacity 0.4s ease;
         }
 
         .cyber-project-card:hover .project-thumb-img {
@@ -121,16 +222,12 @@ const ProjectCard = ({ project }) => {
           display: block;
         }
 
-        .project-title-link:hover .project-name {
-          color: var(--neon);
-        }
-
-        .project-name.project-header-clamped {
+        .project-name {
           font-family: var(--font-display);
-          font-size: 1.8rem;
+          font-size: 1.5rem;
           line-height: 1.2;
           color: #ffffff;
-          margin-bottom: 20px;
+          margin-bottom: 6px;
           letter-spacing: 0.5px;
           text-transform: uppercase;
           display: -webkit-box;
@@ -138,23 +235,45 @@ const ProjectCard = ({ project }) => {
           -webkit-box-orient: vertical;
           overflow: hidden;
           text-overflow: ellipsis;
-          max-height: 2.4em;
           word-break: break-word;
+          transition: color 0.3s;
+        }
+
+        .project-title-link:hover .project-name {
+          color: var(--neon);
+        }
+
+        .project-header-sub {
+          font-family: var(--font-mono);
+          font-size: 0.78rem;
+          line-height: 1.4;
+          color: var(--neon);
+          margin-bottom: 16px;
+          letter-spacing: 0.5px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          word-break: break-word;
+          opacity: 0.9;
         }
 
         .project-card-footer {
           margin-top: auto;
           display: flex;
-          width: 100%;
-          padding-top: 16px;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          padding-top: 14px;
           border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .project-card-footer .detail-btn {
-          width: 100%;
-          padding: 10px 16px;
-          font-size: 0.78rem;
-          gap: 8px;
+          flex: 1;
+          padding: 9px 14px;
+          font-size: 0.75rem;
+          gap: 6px;
           box-sizing: border-box;
           background: rgba(255, 255, 255, 0.04);
           border: 1px solid var(--border);
@@ -163,7 +282,7 @@ const ProjectCard = ({ project }) => {
           align-items: center;
           justify-content: center;
           font-family: var(--font-mono);
-          letter-spacing: 1px;
+          letter-spacing: 0.8px;
           text-decoration: none;
           transition: all 0.3s ease;
         }
@@ -171,6 +290,17 @@ const ProjectCard = ({ project }) => {
         .project-card-footer .detail-btn:hover {
           background: rgba(209, 255, 0, 0.1);
           border-color: var(--neon);
+          color: var(--neon);
+        }
+
+        .chip-icon {
+          color: #444;
+          font-size: 0.9rem;
+          transition: color 0.3s;
+          flex-shrink: 0;
+        }
+
+        .cyber-project-card:hover .chip-icon {
           color: var(--neon);
         }
       `}</style>

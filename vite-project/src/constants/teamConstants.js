@@ -2,7 +2,6 @@ export const ROLES = [
   "Club Coordinator",
   "Executive Member",
   "Wing Member",
-  "Alumni",
 ];
 
 // Backwards compatibility alias

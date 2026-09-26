@@ -25,7 +25,6 @@ const TeamMemberSchema = new mongoose.Schema(
         "Club Coordinator",
         "Executive Member",
         "Wing Member",
-        "Alumni",
       ],
       required: true,
       default: "Wing Member",
@@ -104,12 +103,7 @@ const TeamMemberSchema = new mongoose.Schema(
 
 // Virtual memberType for seamless backwards compatibility with frontend rendering
 TeamMemberSchema.virtual("memberType").get(function () {
-  return this.role === "Alumni" ? "Alumni Member" : this.role;
-});
-
-// Auto-sync isAlumni flag with role on save
-TeamMemberSchema.pre("save", function () {
-  this.isAlumni = this.role === "Alumni";
+  return this.role;
 });
 
 // Compound index for roster queries

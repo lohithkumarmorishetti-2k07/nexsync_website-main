@@ -23,11 +23,14 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     image: '',
     role: 'Club Coordinator',
     domain: DOMAINS[0] || 'ELECTRONICS',
+    isAlumni: false,
     email: '',
     password: '',
     linkedinUrl: '',
@@ -37,8 +40,9 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
   });
 
   const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    const finalValue = name === 'image' ? formatImageUrl(value) : value;
+    const { name, value, type, checked } = e.target;
+    const val = type === 'checkbox' ? checked : value;
+    const finalValue = name === 'image' ? formatImageUrl(val) : val;
     setFormData((prev) => ({
       ...prev,
       [name]: finalValue,
@@ -81,6 +85,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
       image: '',
       role: 'Club Coordinator',
       domain: DOMAINS[0] || 'ELECTRONICS',
+      isAlumni: false,
       email: '',
       password: '',
       linkedinUrl: '',
@@ -89,6 +94,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
       bio: '',
     });
     setEditingMember(null);
+    setShowPassword(false);
     setShowForm(false);
     setError(null);
   };
@@ -98,7 +104,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
     setError(null);
     setSuccess(null);
 
-    const isAlumni = formData.role === 'Alumni';
+    const isAlumni = Boolean(formData.isAlumni);
 
     if (!formData.name.trim()) {
       setError('Full Name is required');
@@ -120,6 +126,11 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
       return;
     }
 
+    if (!isAlumni && !editingMember && !formData.password.trim()) {
+      setError('Initial password is required for active command members.');
+      return;
+    }
+
     try {
       setLoading(true);
       const payload = {
@@ -129,7 +140,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
         role: formData.role,
         isAlumni: isAlumni,
         email: formData.email ? formData.email.trim() : '',
-        password: formData.password ? formData.password.trim() : undefined,
+        password: !isAlumni && formData.password ? formData.password.trim() : undefined,
         linkedinUrl: formData.linkedinUrl ? formData.linkedinUrl.trim() : '',
         githubUrl: formData.githubUrl ? formData.githubUrl.trim() : '',
         portfolioUrl: formData.portfolioUrl ? formData.portfolioUrl.trim() : '',
@@ -160,8 +171,9 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
     setFormData({
       name: member.name || '',
       image: member.image || '',
-      role: member.role || (member.isAlumni ? 'Alumni' : 'Wing Member'),
+      role: member.role || 'Wing Member',
       domain: member.domain || DOMAINS[0],
+      isAlumni: Boolean(member.isAlumni),
       email: member.email || '',
       password: '', // Leave blank to preserve password
       linkedinUrl: member.linkedinUrl || '',
@@ -169,6 +181,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
       portfolioUrl: member.portfolioUrl || '',
       bio: member.bio || '',
     });
+    setShowPassword(false);
     setShowForm(true);
     window.scrollTo({ top: 300, behavior: 'smooth' });
   };
@@ -254,8 +267,8 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
   };
 
   // Roster categories
-  const activeMembers = teamMembers.filter((m) => !m.isArchived && m.role !== 'Alumni' && !m.isAlumni);
-  const alumniMembers = teamMembers.filter((m) => !m.isArchived && (m.role === 'Alumni' || m.isAlumni));
+  const activeMembers = teamMembers.filter((m) => !m.isArchived && !m.isAlumni);
+  const alumniMembers = teamMembers.filter((m) => !m.isArchived && m.isAlumni);
   const archivedMembers = teamMembers.filter((m) => m.isArchived);
 
   const displayedMembers =
@@ -265,7 +278,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
       ? alumniMembers
       : activeMembers;
 
-  const isAlumniSelected = formData.role === 'Alumni';
+  const isAlumniSelected = Boolean(formData.isAlumni);
 
   return (
     <div className="team-mgmt-root">
@@ -733,6 +746,54 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
               </div>
             </div>
 
+            {/* ALUMNI STATUS TOGGLE */}
+            <div style={{ marginBottom: '20px' }}>
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 16px',
+                  background: isAlumniSelected ? 'rgba(192, 132, 252, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+                  border: `1px solid ${isAlumniSelected ? '#c084fc' : 'var(--border)'}`,
+                  cursor: 'pointer',
+                  borderRadius: '2px',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  name="isAlumni"
+                  checked={isAlumniSelected}
+                  onChange={handleFormChange}
+                  style={{ width: '16px', height: '16px', accentColor: '#c084fc', cursor: 'pointer' }}
+                />
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.8rem',
+                    color: isAlumniSelected ? '#c084fc' : 'var(--text-secondary)',
+                    fontWeight: 600,
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  GRADUATED / ALUMNI STATUS
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.72rem',
+                    color: '#888',
+                    marginLeft: '8px',
+                  }}
+                >
+                  {isAlumniSelected
+                    ? '(Alumni member: retains historical role, login access disabled, password not required)'
+                    : '(Active member: requires password & possesses active operations access)'}
+                </span>
+              </label>
+            </div>
+
             <div className="form-grid-2">
               <div className="field-group">
                 <label className="field-label">
@@ -743,30 +804,94 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
                   name="email"
                   value={formData.email}
                   onChange={handleFormChange}
-                  placeholder="member@nexsync.org"
+                  placeholder={isAlumniSelected ? "member@alumni.nexsync.org (optional)" : "member@nexsync.org"}
                   className="field-input"
                   required={!isAlumniSelected}
                 />
               </div>
 
-              {!isAlumniSelected && (
+              {!isAlumniSelected ? (
                 <div className="field-group">
-                  <label className="field-label">
-                    {editingMember ? 'Change Password (Optional)' : 'Initial Password *'}
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleFormChange}
-                    placeholder={
-                      editingMember
-                        ? 'Leave blank to preserve current password'
-                        : 'e.g. NexSync@2026!'
-                    }
-                    className="field-input"
-                    required={!editingMember}
-                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label className="field-label">
+                      {editingMember ? 'Change Password (Optional)' : 'Initial Password *'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: showPassword ? 'var(--neon)' : 'var(--text-secondary)',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.72rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: 0,
+                      }}
+                    >
+                      <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                      {showPassword ? 'Hide Password' : 'Show Password'}
+                    </button>
+                  </div>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleFormChange}
+                      placeholder={
+                        editingMember
+                          ? 'Leave blank to preserve current password'
+                          : 'e.g. NexSync@2026!'
+                      }
+                      className="field-input"
+                      style={{ width: '100%', paddingRight: '40px', boxSizing: 'border-box' }}
+                      required={!editingMember && !isAlumniSelected}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        color: showPassword ? 'var(--neon)' : '#888',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        padding: 0,
+                      }}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="field-group" style={{ justifyContent: 'center' }}>
+                  <label className="field-label">Authentication Status</label>
+                  <div
+                    style={{
+                      padding: '12px 14px',
+                      background: 'rgba(192, 132, 252, 0.08)',
+                      border: '1px solid rgba(192, 132, 252, 0.3)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.78rem',
+                      color: '#c084fc',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <i className="fas fa-lock-open"></i>
+                    Alumni record: no dashboard login access, password not required.
+                  </div>
                 </div>
               )}
             </div>
@@ -999,13 +1124,16 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
                           ? 'badge-role-coord'
                           : member.role === 'Executive Member'
                           ? 'badge-role-exec'
-                          : member.role === 'Alumni' || member.isAlumni
-                          ? 'badge-role-alumni'
                           : 'badge-role-wing'
                       }
                     >
                       {member.role || 'Wing Member'}
                     </span>
+                    {member.isAlumni && (
+                      <span className="badge-role-alumni" style={{ marginLeft: '6px' }}>
+                        ALUMNI
+                      </span>
+                    )}
                   </td>
                   <td>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: '#00dcff' }}>
@@ -1015,7 +1143,7 @@ const TeamManagement = ({ teamMembers, currentUser, onTeamUpdate }) => {
                   <td style={{ textAlign: 'right' }}>
                     {!member.isArchived ? (
                       <>
-                        {member.role !== 'Club Coordinator' && member.role !== 'Alumni' && !member.isAlumni && (
+                        {member.role !== 'Club Coordinator' && !member.isAlumni && (
                           <button
                             onClick={() => handleOpenPermissions(member)}
                             className="btn-action-perm"
