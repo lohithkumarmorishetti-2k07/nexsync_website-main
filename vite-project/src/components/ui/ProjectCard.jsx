@@ -13,11 +13,13 @@ const ProjectCard = ({ project }) => {
 
   const getStatusClass = (status) => {
     switch (status?.toUpperCase()) {
-      case "IN PROGRESS":
+      case "ACTIVE":
+      case "IN PROGRESS": // legacy alias, kept for backward compat
       case "WIP":
         return "status-wip";
       case "COMPLETED":
         return "status-done";
+      case "FUTURE":
       case "PLANNING":
         return "status-planning";
       case "ALUMNI":

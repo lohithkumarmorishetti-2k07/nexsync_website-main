@@ -42,13 +42,15 @@ const EventCard = ({ event, isFeatured = false, showRsvp = true }) => {
   const status = event.status || "Upcoming";
   const title = event.title || "UNTITLED EVENT";
   const header = event.eventHeader && event.eventHeader.trim() ? event.eventHeader.trim() : "";
+  // eventType is the canonical DB field; category is a legacy/fallback alias
+  const categoryLabel = event.eventType || event.category || "TECHNICAL";
 
   return (
     <div className={`cyber-event-card ${isFeatured || event.isFeatured ? "featured" : ""}`}>
       {/* TOP BAR: CATEGORY & STATUS */}
       <div className="card-top-bar">
         <span className="event-category-badge">
-          {event.category || "TECHNICAL"}
+          {categoryLabel}
         </span>
         <div className="event-pulse-indicator">
           <span
@@ -105,8 +107,9 @@ const EventCard = ({ event, isFeatured = false, showRsvp = true }) => {
           <div className="meta-row">
             <i className="fas fa-calendar-alt meta-icon"></i>
             <span>
-              {event.date ? formatDate(event.date) : "TBD"}
-              {event.endDate && event.endDate !== event.date
+              {/* startDate is canonical DB field; date is a legacy/fallback alias */}
+              {event.startDate || event.date ? formatDate(event.startDate || event.date) : "TBD"}
+              {event.endDate && event.endDate !== (event.startDate || event.date)
                 ? ` - ${formatDate(event.endDate)}`
                 : ""}
             </span>

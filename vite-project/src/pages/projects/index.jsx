@@ -27,13 +27,15 @@ const ProjectsPage = () => {
     }
   };
 
-  // Group database records by the 4 required categories
+  // 'Active' is the canonical status; 'IN PROGRESS' kept as legacy alias
   const activeProjects = projects.filter(
     (p) => p.status === "Active" || p.status === "IN PROGRESS"
   );
+  // 'Future' is canonical; 'PLANNING' kept as legacy alias
   const futureProjects = projects.filter(
     (p) => p.status === "Future" || p.status === "PLANNING"
   );
+  // 'Completed' is canonical; 'PAST' kept as legacy alias
   const completedProjects = projects.filter(
     (p) => p.status === "Completed" || p.status === "PAST"
   );
