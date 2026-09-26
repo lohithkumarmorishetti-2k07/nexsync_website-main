@@ -252,7 +252,7 @@ const About = () => {
             <div className="event-body">
               <h3>WHY NEXSYNC?</h3>
               <ul className="bullet-list">
-                <li>Hands-on R&D in ROS2, Jetson edge systems, and CAN-bus telemetry.</li>
+                <li>Hands-on R&D in ROS2, Raspberry Pi Systems, and CAN-bus telemetry.</li>
                 <li>Direct exposure to national autonomous driving competitions.</li>
                 <li>Comprehensive cross-domain mentorship across AI/ML, Electronics, and UI/UX.</li>
               </ul>
@@ -590,7 +590,11 @@ const ContactSection = () => {
             </div>
             <div className="card-info">
               <h4>DIRECT INQUIRY</h4>
-              <div className="highlight">nexsync@iiits.in</div>
+              <div className="highlight">
+                <a href="mailto:nexsyncmotors@club.iiits.in" style={{ color: 'inherit', textDecoration: 'none' }}>
+                  nexsyncmotors@club.iiits.in
+                </a>
+              </div>
               <div className="sub">Response latency: &lt; 24 hours</div>
             </div>
           </div>

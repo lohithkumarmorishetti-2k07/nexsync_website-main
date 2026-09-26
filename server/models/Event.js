@@ -6,9 +6,14 @@ const EventSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  eventHeader: {
+    type: String,
+    default: "",
+    trim: true,
+  },
   description: {
     type: String,
-    required: true,
+    default: "",
   },
   coverImage: {
     type: String,

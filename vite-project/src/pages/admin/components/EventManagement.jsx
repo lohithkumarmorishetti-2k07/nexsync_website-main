@@ -18,6 +18,7 @@ const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
 
   const [formData, setFormData] = useState({
     title: '',
+    eventHeader: '',
     description: '',
     coverImage: '',
     image: '',
@@ -132,6 +133,7 @@ const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
   const resetForm = () => {
     setFormData({
       title: '',
+      eventHeader: '',
       description: '',
       coverImage: '',
       image: '',
@@ -160,8 +162,8 @@ const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
     setError(null);
     setSuccess(null);
 
-    if (!formData.title.trim() || !formData.description.trim() || !formData.startDate || !formData.location.trim()) {
-      setError('Title, Description, Start Date, and Location are required');
+    if (!formData.title.trim() || !formData.startDate || !formData.location.trim()) {
+      setError('Title, Start Date, and Location are required');
       return;
     }
 
@@ -170,7 +172,8 @@ const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
       const effectiveCover = (formData.coverImage || formData.image || '').trim();
       const payload = {
         title: formData.title.trim(),
-        description: formData.description.trim(),
+        eventHeader: (formData.eventHeader || '').trim(),
+        description: (formData.description || '').trim(),
         coverImage: effectiveCover,
         image: effectiveCover,
         videoUrl: (formData.videoUrl || '').trim(),
@@ -212,6 +215,7 @@ const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
     const cover = event.coverImage || event.image || '';
     setFormData({
       title: event.title || '',
+      eventHeader: event.eventHeader || '',
       description: event.description || '',
       coverImage: cover,
       image: cover,
@@ -933,7 +937,19 @@ const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
             )}
 
             <div className="field-group" style={{ marginBottom: '18px' }}>
-              <label className="field-label">Event Description *</label>
+              <label className="field-label">Event Header (Optional)</label>
+              <input
+                type="text"
+                name="eventHeader"
+                value={formData.eventHeader}
+                onChange={handleFormChange}
+                placeholder="Short headline for cards (max 2 lines displayed)..."
+                className="field-input"
+              />
+            </div>
+
+            <div className="field-group" style={{ marginBottom: '18px' }}>
+              <label className="field-label">Event Description (Optional)</label>
               <textarea
                 name="description"
                 value={formData.description}
@@ -941,7 +957,6 @@ const EventManagement = ({ events, currentUser, onEventsUpdate }) => {
                 rows={3}
                 placeholder="Comprehensive technical briefing and workshop agenda..."
                 className="field-textarea"
-                required
               />
             </div>
 

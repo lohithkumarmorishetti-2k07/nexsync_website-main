@@ -172,6 +172,9 @@ const EventDetailPage = () => {
         </div>
 
         <h1 className="event-main-title">{event.title}</h1>
+        {event.eventHeader && (
+          <p className="detail-header-subtitle">{event.eventHeader}</p>
+        )}
 
         {event.organizer && (
           <div className="event-organizer-row">
@@ -480,6 +483,15 @@ const EventDetailPage = () => {
           margin-bottom: 14px;
           letter-spacing: 0.5px;
           text-transform: uppercase;
+        }
+
+        .detail-header-subtitle {
+          font-family: var(--font-body);
+          font-size: 1.15rem;
+          color: var(--neon);
+          margin-bottom: 16px;
+          line-height: 1.5;
+          letter-spacing: 0.3px;
         }
 
         .event-organizer-row {

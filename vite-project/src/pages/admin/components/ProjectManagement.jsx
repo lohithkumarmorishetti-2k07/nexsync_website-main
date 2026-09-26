@@ -18,6 +18,7 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
   const [formData, setFormData] = useState({
     projectId: '',
     projectName: '',
+    projectHeader: '',
     description: '',
     coverImage: '',
     thumbnail: '',
@@ -131,6 +132,7 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
     setFormData({
       projectId: '',
       projectName: '',
+      projectHeader: '',
       description: '',
       coverImage: '',
       thumbnail: '',
@@ -157,8 +159,8 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
     setError(null);
     setSuccess(null);
 
-    if (!formData.projectId.trim() || !formData.projectName.trim() || !formData.description.trim()) {
-      setError('Project ID, Project Name, and Description are required');
+    if (!formData.projectId.trim() || !formData.projectName.trim()) {
+      setError('Project ID and Project Name are required');
       return;
     }
 
@@ -168,7 +170,8 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
       const payload = {
         projectId: formData.projectId.trim(),
         projectName: formData.projectName.trim(),
-        description: formData.description.trim(),
+        projectHeader: (formData.projectHeader || '').trim(),
+        description: (formData.description || '').trim(),
         coverImage: effectiveCover,
         thumbnail: effectiveCover,
         videoUrl: (formData.videoUrl || '').trim(),
@@ -215,6 +218,7 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
     setFormData({
       projectId: project.projectId || '',
       projectName: project.projectName || '',
+      projectHeader: project.projectHeader || '',
       description: project.description || '',
       coverImage: cover,
       thumbnail: cover,
@@ -910,7 +914,19 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
             </div>
 
             <div className="field-group" style={{ marginBottom: '18px' }}>
-              <label className="field-label">Project Description *</label>
+              <label className="field-label">Project Header (Optional)</label>
+              <input
+                type="text"
+                name="projectHeader"
+                value={formData.projectHeader}
+                onChange={handleFormChange}
+                placeholder="Short headline for cards (max 2 lines displayed)..."
+                className="field-input"
+              />
+            </div>
+
+            <div className="field-group" style={{ marginBottom: '18px' }}>
+              <label className="field-label">Project Description (Optional)</label>
               <textarea
                 name="description"
                 value={formData.description}
@@ -918,7 +934,6 @@ const ProjectManagement = ({ projects, currentUser, onProjectsUpdate }) => {
                 rows={3}
                 placeholder="Comprehensive technical breakdown of architecture, telemetry, and capabilities..."
                 className="field-textarea"
-                required
               />
             </div>
 

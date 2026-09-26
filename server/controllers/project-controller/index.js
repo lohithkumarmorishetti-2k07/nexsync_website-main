@@ -144,6 +144,7 @@ const createProject = async (req, res) => {
     const {
       projectId,
       projectName,
+      projectHeader,
       description,
       coverImage,
       thumbnail,
@@ -160,10 +161,10 @@ const createProject = async (req, res) => {
       isFeatured,
     } = req.body;
 
-    if (!projectId || !projectName || !description) {
+    if (!projectId || !projectName) {
       return res.status(400).json({
         success: false,
-        message: "Project ID, Project Name, and Description are required",
+        message: "Project ID and Project Name are required",
       });
     }
 
@@ -215,7 +216,8 @@ const createProject = async (req, res) => {
     const project = new Project({
       projectId: projectId.trim(),
       projectName: projectName.trim(),
-      description: description.trim(),
+      projectHeader: projectHeader ? projectHeader.trim() : "",
+      description: description ? description.trim() : "",
       coverImage: primaryCover,
       thumbnail: primaryCover,
       videoUrl: primaryVideo,
@@ -254,6 +256,7 @@ const updateProject = async (req, res) => {
     const {
       projectId,
       projectName,
+      projectHeader,
       description,
       coverImage,
       thumbnail,
@@ -280,6 +283,7 @@ const updateProject = async (req, res) => {
     const updateData = {};
     if (projectId !== undefined) updateData.projectId = projectId.trim();
     if (projectName !== undefined) updateData.projectName = projectName.trim();
+    if (projectHeader !== undefined) updateData.projectHeader = projectHeader.trim();
     if (description !== undefined) updateData.description = description.trim();
     if (primaryCover !== undefined) {
       updateData.coverImage = primaryCover;

@@ -201,6 +201,9 @@ const ProjectDetailPage = () => {
         </div>
 
         <h1 className="project-main-title">{project.projectName}</h1>
+        {project.projectHeader && (
+          <p className="detail-header-subtitle">{project.projectHeader}</p>
+        )}
       </div>
 
       {/* COVER BANNER (IF AVAILABLE) */}
@@ -520,6 +523,15 @@ const ProjectDetailPage = () => {
           margin-bottom: 16px;
           letter-spacing: 0.5px;
           text-transform: uppercase;
+        }
+
+        .detail-header-subtitle {
+          font-family: var(--font-body);
+          font-size: 1.15rem;
+          color: var(--neon);
+          margin-bottom: 16px;
+          line-height: 1.5;
+          letter-spacing: 0.3px;
         }
 
         .project-crew-row {

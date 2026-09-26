@@ -143,6 +143,7 @@ const createEvent = async (req, res) => {
   try {
     const {
       title,
+      eventHeader,
       description,
       coverImage,
       image,
@@ -163,10 +164,10 @@ const createEvent = async (req, res) => {
       registeredCount,
     } = req.body;
 
-    if (!title || !description || !startDate || !location) {
+    if (!title || !startDate || !location) {
       return res.status(400).json({
         success: false,
-        message: "Event title, description, start date, and location are required",
+        message: "Event title, start date, and location are required",
       });
     }
 
@@ -198,7 +199,8 @@ const createEvent = async (req, res) => {
 
     const event = new Event({
       title: title.trim(),
-      description: description.trim(),
+      eventHeader: eventHeader ? eventHeader.trim() : "",
+      description: description ? description.trim() : "",
       coverImage: primaryCover,
       image: primaryCover,
       videoUrl: primaryVideo,
@@ -242,6 +244,7 @@ const updateEvent = async (req, res) => {
   try {
     const {
       title,
+      eventHeader,
       description,
       coverImage,
       image,
@@ -271,6 +274,7 @@ const updateEvent = async (req, res) => {
 
     const updateData = {};
     if (title !== undefined) updateData.title = title.trim();
+    if (eventHeader !== undefined) updateData.eventHeader = eventHeader.trim();
     if (description !== undefined) updateData.description = description.trim();
     if (primaryCover !== undefined) {
       updateData.coverImage = primaryCover;

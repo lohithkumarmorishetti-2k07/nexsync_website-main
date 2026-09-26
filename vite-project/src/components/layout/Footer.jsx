@@ -53,8 +53,8 @@ const Footer = () => {
           <h4>TRANSMISSION LINES</h4>
           <div className="c-item">
             <span className="c-label">DIRECT EMAIL</span>
-            <a href="mailto:nexsync@iiits.in" className="c-val hover-trigger">
-              nexsync@iiits.in
+            <a href="mailto:nexsyncmotors@club.iiits.in" className="c-val hover-trigger">
+              nexsyncmotors@club.iiits.in
             </a>
           </div>
           <div className="c-item">

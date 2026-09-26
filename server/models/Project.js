@@ -12,9 +12,14 @@ const ProjectSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  projectHeader: {
+    type: String,
+    default: "",
+    trim: true,
+  },
   description: {
     type: String,
-    required: true,
+    default: "",
   },
   coverImage: {
     type: String,
